@@ -11,6 +11,12 @@ import com.techelp.service.NotificacaoService;
 import com.techelp.model.entity.Usuario;
 import com.techelp.TecHelpApplication;
 import com.techelp.util.WindowManager;
+import javafx.application.Platform;
+import javafx.scene.effect.BoxBlur;
+import javafx.animation.FadeTransition;
+import javafx.util.Duration;
+import javafx.stage.Screen;
+import javafx.geometry.Rectangle2D;
 
 public abstract class BaseController {
     
@@ -23,6 +29,14 @@ public abstract class BaseController {
     
     public void setPrimaryStage(Stage stage) {
         this.primaryStage = stage;
+        
+        // Configura a janela para sempre iniciar maximizada
+        Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
+        stage.setX(screenBounds.getMinX());
+        stage.setY(screenBounds.getMinY());
+        stage.setWidth(screenBounds.getWidth());
+        stage.setHeight(screenBounds.getHeight());
+        stage.setMaximized(true);
     }
     
     protected void inicializarNotificacoes(Usuario usuario) {
@@ -53,9 +67,11 @@ public abstract class BaseController {
             
             System.out.println("URL do FXML encontrada: " + fxmlUrl);
             
+            // Carrega o FXML
             FXMLLoader loader = new FXMLLoader(fxmlUrl);
             Parent root = loader.load();
             
+            // Configura o controller
             BaseController controller = loader.getController();
             if (controller != null) {
                 if (primaryStage != null) {
@@ -70,6 +86,7 @@ public abstract class BaseController {
                 }
             }
             
+            // Cria e configura a Scene
             Scene scene = new Scene(root);
             
             // Tenta carregar o CSS
@@ -81,15 +98,17 @@ public abstract class BaseController {
                 System.out.println("Arquivo CSS não encontrado");
             }
             
+            // Define a Scene
             primaryStage.setScene(scene);
             
-            // Configura o tamanho da janela baseado no tipo de tela
+            // Configura o tamanho da janela e aplica transições
             if (fxml.contains("LoginView") || fxml.contains("CadastroView")) {
                 WindowManager.setupLoginWindow(primaryStage);
             } else {
                 WindowManager.setupMainWindow(primaryStage);
             }
             
+            // Mostra a janela
             primaryStage.show();
             
         } catch (Exception e) {
@@ -114,9 +133,11 @@ public abstract class BaseController {
                 throw new IOException("Arquivo FXML não encontrado: " + fxml);
             }
             
+            // Carrega o FXML
             FXMLLoader loader = new FXMLLoader(fxmlUrl);
             Parent root = loader.load();
             
+            // Configura o controller
             BaseController controller = loader.getController();
             if (controller != null) {
                 if (primaryStage != null) {
@@ -135,21 +156,24 @@ public abstract class BaseController {
                 }
             }
             
+            // Cria e configura a Scene
             Scene scene = new Scene(root);
             URL cssUrl = getClass().getClassLoader().getResource("css/styles.css");
             if (cssUrl != null) {
                 scene.getStylesheets().add(cssUrl.toExternalForm());
             }
             
+            // Define a Scene
             primaryStage.setScene(scene);
             
-            // Configura o tamanho da janela baseado no tipo de tela
+            // Configura o tamanho da janela e aplica transições
             if (fxml.contains("LoginView") || fxml.contains("CadastroView")) {
                 WindowManager.setupLoginWindow(primaryStage);
             } else {
                 WindowManager.setupMainWindow(primaryStage);
             }
             
+            // Mostra a janela
             primaryStage.show();
             
         } catch (Exception e) {

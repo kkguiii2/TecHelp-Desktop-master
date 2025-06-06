@@ -6,23 +6,23 @@
 <?import javafx.scene.text.Text?>
 <?import javafx.scene.text.TextFlow?>
 
-<ScrollPane xmlns="http://javafx.com/javafx"
-           xmlns:fx="http://javafx.com/fxml"
-           fx:controller="com.techelp.controller.CadastroController"
-           fitToWidth="true"
-           fitToHeight="true"
-           styleClass="transparent-scroll-pane">
-           
-    <StackPane>
-        <VBox spacing="10"
-              alignment="CENTER"
-              stylesheets="@../css/styles.css"
-              styleClass="modern-container">
-
-            <padding>
-                <Insets top="20" right="30" bottom="20" left="30"/>
-            </padding>
-
+<StackPane xmlns="http://javafx.com/javafx"
+         xmlns:fx="http://javafx.com/fxml"
+         fx:controller="com.techelp.controller.CadastroController"
+         stylesheets="@../css/styles.css, @../css/backgrounds.css"
+         styleClass="auth-background">
+         
+    <!-- Nuvens decorativas -->
+    <StackPane styleClass="cloud-decoration">
+        <Pane styleClass="decoration, cloud-1"/>
+        <Pane styleClass="decoration, cloud-2"/>
+        <Pane styleClass="decoration, cloud-3"/>
+        <Pane styleClass="decoration, cloud-4"/>
+    </StackPane>
+    
+    <!-- Conteúdo principal -->
+    <VBox styleClass="center-container" alignment="CENTER">
+        <VBox styleClass="modern-container" alignment="CENTER" spacing="15">
             <!-- Título -->
             <VBox spacing="5" alignment="CENTER">
                 <Text text="Bem vindo ao" styleClass="welcome-text"/>
@@ -100,5 +100,5 @@
                            styleClass="modern-link"/>
             </VBox>
         </VBox>
-    </StackPane>
-</ScrollPane> 
+    </VBox>
+</StackPane> 

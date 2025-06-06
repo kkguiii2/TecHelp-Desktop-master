@@ -1,0 +1,56 @@
+/* Background decorativo para telas de login/registro */
+.auth-background {
+    -fx-background-color: 
+        linear-gradient(to bottom right, 
+            rgba(255, 255, 255, 0.9) 0%,
+            rgba(240, 245, 255, 0.9) 50%,
+            rgba(230, 240, 255, 0.9) 100%);
+}
+
+/* Nuvens decorativas usando pseudo-elementos */
+.cloud-decoration {
+    -fx-background-color: transparent;
+}
+
+.cloud-decoration .decoration {
+    -fx-background-color: 
+        linear-gradient(to bottom right,
+            rgba(200, 220, 255, 0.2),
+            rgba(180, 200, 255, 0.3));
+    -fx-background-radius: 100%;
+    -fx-min-width: 200px;
+    -fx-min-height: 200px;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 20, 0, 0, 0);
+}
+
+.cloud-1 {
+    -fx-translate-x: -30%;
+    -fx-translate-y: -20%;
+    -fx-rotate: 30;
+    -fx-scale-x: 1.5;
+    -fx-scale-y: 1;
+}
+
+.cloud-2 {
+    -fx-translate-x: 40%;
+    -fx-translate-y: 40%;
+    -fx-rotate: -15;
+    -fx-scale-x: 2;
+    -fx-scale-y: 1.2;
+}
+
+.cloud-3 {
+    -fx-translate-x: 30%;
+    -fx-translate-y: -40%;
+    -fx-rotate: 45;
+    -fx-scale-x: 1.8;
+    -fx-scale-y: 0.9;
+}
+
+.cloud-4 {
+    -fx-translate-x: -40%;
+    -fx-translate-y: 30%;
+    -fx-rotate: -30;
+    -fx-scale-x: 1.6;
+    -fx-scale-y: 1.1;
+} 

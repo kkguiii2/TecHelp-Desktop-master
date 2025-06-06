@@ -30,12 +30,13 @@
                 styleClass="nav-button"/>
     </HBox>
 
-    <VBox spacing="20" styleClass="dashboard-container">
+    <VBox spacing="20" styleClass="dashboard-container" VBox.vgrow="ALWAYS">
         <padding>
-            <Insets top="20" right="20" bottom="20" left="20"/>
+            <Insets top="20" right="30" bottom="20" left="30"/>
         </padding>
         
-        <HBox spacing="20">
+        <!-- Cards de Métricas -->
+        <HBox spacing="30">
             <VBox styleClass="card" HBox.hgrow="ALWAYS">
                 <Text text="Chamados em Andamento" styleClass="card-title"/>
                 <Text fx:id="chamadosAndamentoText" styleClass="card-value"/>
@@ -52,51 +53,63 @@
             </VBox>
         </HBox>
         
-        <HBox spacing="20" VBox.vgrow="ALWAYS">
-            <VBox spacing="10" HBox.hgrow="ALWAYS">
-                <HBox spacing="10" alignment="CENTER_LEFT">
+        <!-- Área Principal -->
+        <HBox spacing="30" VBox.vgrow="ALWAYS">
+            <!-- Lista de Chamados -->
+            <VBox spacing="15" HBox.hgrow="ALWAYS">
+                <!-- Filtros -->
+                <HBox spacing="15" alignment="CENTER_LEFT">
                     <ComboBox fx:id="filtroStatusCombo" 
-                             promptText="Status"/>
+                             promptText="Status"
+                             styleClass="filter-combo"/>
                              
                     <ComboBox fx:id="filtroPrioridadeCombo"
-                             promptText="Prioridade"/>
+                             promptText="Prioridade"
+                             styleClass="filter-combo"/>
                              
                     <TextField fx:id="pesquisaField"
                               promptText="Pesquisar chamados..."
+                              styleClass="search-field"
                               HBox.hgrow="ALWAYS"/>
                 </HBox>
                 
+                <!-- Tabela de Chamados -->
                 <TableView fx:id="chamadosTable" VBox.vgrow="ALWAYS">
                     <columns>
-                        <TableColumn fx:id="idColumn" text="ID"/>
-                        <TableColumn fx:id="tituloColumn" text="Título"/>
-                        <TableColumn fx:id="solicitanteColumn" text="Solicitante"/>
-                        <TableColumn fx:id="statusColumn" text="Status"/>
-                        <TableColumn fx:id="prioridadeColumn" text="Prioridade"/>
-                        <TableColumn fx:id="dataAberturaColumn" text="Data Abertura"/>
-                        <TableColumn fx:id="tempoDecorridoColumn" text="Tempo Decorrido"/>
-                        <TableColumn fx:id="acoesColumn" text="Ações"/>
+                        <TableColumn fx:id="idColumn" text="ID" minWidth="60"/>
+                        <TableColumn fx:id="tituloColumn" text="Título" minWidth="200"/>
+                        <TableColumn fx:id="solicitanteColumn" text="Solicitante" minWidth="150"/>
+                        <TableColumn fx:id="statusColumn" text="Status" minWidth="120"/>
+                        <TableColumn fx:id="prioridadeColumn" text="Prioridade" minWidth="120"/>
+                        <TableColumn fx:id="dataAberturaColumn" text="Data Abertura" minWidth="150"/>
+                        <TableColumn fx:id="tempoDecorridoColumn" text="Tempo Decorrido" minWidth="150"/>
+                        <TableColumn fx:id="acoesColumn" text="Ações" minWidth="300"/>
                     </columns>
                 </TableView>
             </VBox>
             
-            <VBox spacing="10" minWidth="300">
-                <Text text="Chamados por Categoria" styleClass="section-text"/>
-                <PieChart fx:id="chamadosPorCategoriaChart" 
-                         legendVisible="true"
-                         VBox.vgrow="ALWAYS"/>
+            <!-- Gráficos -->
+            <VBox spacing="20" minWidth="400" maxWidth="400">
+                <VBox spacing="10" VBox.vgrow="ALWAYS">
+                    <Text text="Chamados por Categoria" styleClass="section-text"/>
+                    <PieChart fx:id="chamadosPorCategoriaChart" 
+                             legendVisible="true"
+                             VBox.vgrow="ALWAYS"/>
+                </VBox>
                          
-                <Text text="Desempenho" styleClass="section-text"/>
-                <LineChart fx:id="desempenhoChart" 
-                          title="Tempo Médio de Resolução (últimos 7 dias)"
-                          VBox.vgrow="ALWAYS">
-                    <xAxis>
-                        <CategoryAxis label="Data"/>
-                    </xAxis>
-                    <yAxis>
-                        <NumberAxis label="Horas"/>
-                    </yAxis>
-                </LineChart>
+                <VBox spacing="10" VBox.vgrow="ALWAYS">
+                    <Text text="Desempenho" styleClass="section-text"/>
+                    <LineChart fx:id="desempenhoChart" 
+                              title="Tempo Médio de Resolução (últimos 7 dias)"
+                              VBox.vgrow="ALWAYS">
+                        <xAxis>
+                            <CategoryAxis label="Data"/>
+                        </xAxis>
+                        <yAxis>
+                            <NumberAxis label="Horas"/>
+                        </yAxis>
+                    </LineChart>
+                </VBox>
             </VBox>
         </HBox>
     </VBox>

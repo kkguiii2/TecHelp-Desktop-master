@@ -15,7 +15,11 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import javafx.stage.Modality;
 import java.net.URL;
+import javafx.application.Platform;
+import javafx.util.Duration;
+import javafx.animation.PauseTransition;
 
 public class CadastroController extends BaseController {
     
@@ -63,6 +67,17 @@ public class CadastroController extends BaseController {
             "Outros"
         ));
         departamentoCombo.setValue("Outros");
+        
+        // Garante que a mensagem de erro esteja invisível inicialmente
+        mensagemErro.setVisible(false);
+        
+        // Configura listeners para limpar mensagem de erro quando o usuário começa a digitar
+        nomeField.textProperty().addListener((obs, old, newValue) -> mensagemErro.setVisible(false));
+        emailField.textProperty().addListener((obs, old, newValue) -> mensagemErro.setVisible(false));
+        senhaField.textProperty().addListener((obs, old, newValue) -> mensagemErro.setVisible(false));
+        confirmarSenhaField.textProperty().addListener((obs, old, newValue) -> mensagemErro.setVisible(false));
+        departamentoCombo.valueProperty().addListener((obs, old, newValue) -> mensagemErro.setVisible(false));
+        lgpdCheckbox.selectedProperty().addListener((obs, old, newValue) -> mensagemErro.setVisible(false));
     }
     
     @FXML
@@ -118,8 +133,23 @@ public class CadastroController extends BaseController {
             // Salva o usuário
             usuarioService.salvar(novoUsuario);
             
-            // Redireciona para a tela de login
-            carregarTela("/fxml/LoginView.fxml");
+            // Mostra mensagem de sucesso
+            mostrarSucesso("Cadastro realizado com sucesso!");
+            
+            // Aguarda um pouco antes de redirecionar
+            PauseTransition delay = new PauseTransition(Duration.seconds(1));
+            delay.setOnFinished(event -> {
+                Platform.runLater(() -> {
+                    try {
+                        carregarTela("/fxml/LoginView.fxml");
+                    } catch (Exception e) {
+                        System.err.println("Erro ao carregar tela de login: " + e.getMessage());
+                        e.printStackTrace();
+                        mostrarErro("Erro ao carregar tela de login: " + e.getMessage());
+                    }
+                });
+            });
+            delay.play();
             
         } catch (Exception e) {
             System.err.println("Erro no cadastro: " + e.getMessage());
@@ -130,13 +160,15 @@ public class CadastroController extends BaseController {
     
     @FXML
     private void handleVoltar() {
-        try {
-            carregarTela("/fxml/LoginView.fxml");
-        } catch (Exception e) {
-            System.err.println("Erro ao voltar para login: " + e.getMessage());
-            e.printStackTrace();
-            mostrarErro("Erro ao voltar para tela de login: " + e.getMessage());
-        }
+        Platform.runLater(() -> {
+            try {
+                carregarTela("/fxml/LoginView.fxml");
+            } catch (Exception e) {
+                System.err.println("Erro ao voltar para login: " + e.getMessage());
+                e.printStackTrace();
+                mostrarErro("Erro ao voltar para tela de login: " + e.getMessage());
+            }
+        });
     }
 
     @FXML
@@ -159,6 +191,7 @@ public class CadastroController extends BaseController {
             
             Stage stage = new Stage();
             stage.setTitle("Política de Privacidade");
+            stage.initModality(Modality.APPLICATION_MODAL);
             stage.setScene(scene);
             stage.show();
         } catch (Exception e) {
@@ -175,5 +208,6 @@ public class CadastroController extends BaseController {
         confirmarSenhaField.clear();
         departamentoCombo.setValue("Outros");
         lgpdCheckbox.setSelected(false);
+        mensagemErro.setVisible(false);
     }
 } 
