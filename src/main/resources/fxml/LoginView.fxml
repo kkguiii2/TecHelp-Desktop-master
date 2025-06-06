@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.text.Text?>
+<?import javafx.scene.text.TextFlow?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.image.Image?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.techelp.controller.LoginController"
+      spacing="15"
+      alignment="CENTER"
+      stylesheets="@../css/styles.css"
+      styleClass="modern-container">
+
+    <padding>
+        <Insets top="30" right="40" bottom="30" left="40"/>
+    </padding>
+
+    <!-- Título -->
+    <VBox spacing="5" alignment="CENTER">
+        <Text text="Bem vindo ao" styleClass="welcome-text"/>
+        <Text text="TecHelp" styleClass="brand-text"/>
+    </VBox>
+
+    <!-- Subtítulo -->
+    <Text text="Preencha os dados do login para acessar" 
+          styleClass="subtitle-text"/>
+
+    <!-- Formulário -->
+    <VBox spacing="20" alignment="CENTER" styleClass="form-container">
+        <!-- Campo de Email -->
+        <VBox spacing="5">
+            <Text text="Email" styleClass="field-label"/>
+            <TextField fx:id="emailField" 
+                      styleClass="modern-field"/>
+        </VBox>
+
+        <!-- Campo de Senha -->
+        <VBox spacing="5">
+            <Text text="Senha" styleClass="field-label"/>
+            <PasswordField fx:id="senhaField" 
+                          styleClass="modern-field"/>
+        </VBox>
+
+        <!-- Botão de Login -->
+        <Button text="ENTRAR" 
+                onAction="#handleLogin"
+                styleClass="modern-button"/>
+
+        <!-- Link para Cadastro -->
+        <Hyperlink text="Criar nova conta"
+                   onAction="#handleCadastro"
+                   styleClass="modern-link"/>
+    </VBox>
+
+    <!-- Mensagem de Erro -->
+    <Text fx:id="mensagemErro"
+          styleClass="error-text"
+          visible="false"
+          wrappingWidth="280"/>
+
+    <!-- LGPD -->
+    <VBox spacing="10" alignment="CENTER" maxWidth="280">
+        <CheckBox fx:id="lgpdCheckbox"
+                  text="Li e aceito os termos de uso e política de privacidade"
+                  styleClass="modern-checkbox"
+                  visible="false"
+                  wrapText="true"/>
+
+        <Hyperlink text="Ver Política de Privacidade"
+                   onAction="#handlePoliticaPrivacidade"
+                   styleClass="modern-link"/>
+    </VBox>
+</VBox> 

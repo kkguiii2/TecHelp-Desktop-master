@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.text.Text?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.techelp.controller.ChamadoController"
+      stylesheets="@../css/styles.css">
+
+    <HBox styleClass="nav-bar">
+        <padding>
+            <Insets top="10" right="20" bottom="10" left="20"/>
+        </padding>
+        
+        <Label text="Detalhes do Chamado" 
+               styleClass="nav-title"/>
+               
+        <Region HBox.hgrow="ALWAYS"/>
+        
+        <Button text="Voltar" 
+                onAction="#handleVoltar"
+                styleClass="nav-button"/>
+    </HBox>
+
+    <HBox spacing="20" VBox.vgrow="ALWAYS">
+        <padding>
+            <Insets top="20" right="20" bottom="20" left="20"/>
+        </padding>
+        
+        <!-- Detalhes do Chamado -->
+        <VBox spacing="10" minWidth="300" maxWidth="300">
+            <VBox styleClass="card">
+                <Text text="Informações" styleClass="section-text"/>
+                
+                <GridPane vgap="10" hgap="10">
+                    <Text text="ID:" 
+                          GridPane.columnIndex="0" 
+                          GridPane.rowIndex="0"/>
+                    <Text fx:id="idText" 
+                          GridPane.columnIndex="1" 
+                          GridPane.rowIndex="0"/>
+                          
+                    <Text text="Status:" 
+                          GridPane.columnIndex="0" 
+                          GridPane.rowIndex="1"/>
+                    <Text fx:id="statusText" 
+                          GridPane.columnIndex="1" 
+                          GridPane.rowIndex="1"/>
+                          
+                    <Text text="Prioridade:" 
+                          GridPane.columnIndex="0" 
+                          GridPane.rowIndex="2"/>
+                    <Text fx:id="prioridadeText" 
+                          GridPane.columnIndex="1" 
+                          GridPane.rowIndex="2"/>
+                          
+                    <Text text="Categoria:" 
+                          GridPane.columnIndex="0" 
+                          GridPane.rowIndex="3"/>
+                    <Text fx:id="categoriaText" 
+                          GridPane.columnIndex="1" 
+                          GridPane.rowIndex="3"/>
+                          
+                    <Text text="Solicitante:" 
+                          GridPane.columnIndex="0" 
+                          GridPane.rowIndex="4"/>
+                    <Text fx:id="solicitanteText" 
+                          GridPane.columnIndex="1" 
+                          GridPane.rowIndex="4"/>
+                          
+                    <Text text="Técnico:" 
+                          GridPane.columnIndex="0" 
+                          GridPane.rowIndex="5"/>
+                    <Text fx:id="tecnicoText" 
+                          GridPane.columnIndex="1" 
+                          GridPane.rowIndex="5"/>
+                          
+                    <Text text="Data Abertura:" 
+                          GridPane.columnIndex="0" 
+                          GridPane.rowIndex="6"/>
+                    <Text fx:id="dataAberturaText" 
+                          GridPane.columnIndex="1" 
+                          GridPane.rowIndex="6"/>
+                          
+                    <Text text="Tempo Decorrido:" 
+                          GridPane.columnIndex="0" 
+                          GridPane.rowIndex="7"/>
+                    <Text fx:id="tempoDecorridoText" 
+                          GridPane.columnIndex="1" 
+                          GridPane.rowIndex="7"/>
+                </GridPane>
+            </VBox>
+            
+            <!-- Menu de Ações -->
+            <VBox styleClass="card" fx:id="acoesBox">
+                <Text text="Ações" styleClass="section-text"/>
+                <VBox spacing="5">
+                    <Button text="Iniciar Atendimento" 
+                            onAction="#handleIniciarAtendimento"
+                            styleClass="action-button"
+                            maxWidth="Infinity"/>
+                    <Button text="Fechar Chamado" 
+                            onAction="#handleFecharChamado"
+                            styleClass="action-button, resolve"
+                            maxWidth="Infinity"/>
+                    <Button text="Cancelar Chamado" 
+                            onAction="#handleCancelarChamado"
+                            styleClass="action-button, cancel"
+                            maxWidth="Infinity"/>
+                </VBox>
+            </VBox>
+            
+            <VBox styleClass="card">
+                <Text text="Descrição" styleClass="section-text"/>
+                <TextField fx:id="tituloField" 
+                         promptText="Digite o título do chamado"
+                         visible="false"
+                         styleClass="input-field"/>
+                <TextArea fx:id="descricaoArea" 
+                         wrapText="true"
+                         editable="false"
+                         prefRowCount="5"/>
+            </VBox>
+            
+            <VBox styleClass="card" fx:id="avaliacaoBox" visible="false">
+                <Text text="Avaliação" styleClass="section-text"/>
+                <HBox spacing="5" alignment="CENTER_LEFT">
+                    <Text fx:id="avaliacaoText"/>
+                    <Text text="estrelas"/>
+                </HBox>
+            </VBox>
+        </VBox>
+        
+        <!-- Chat/Interações -->
+        <VBox spacing="10" HBox.hgrow="ALWAYS">
+            <Text text="Interações" styleClass="section-text"/>
+            
+            <ScrollPane VBox.vgrow="ALWAYS" fitToWidth="true" styleClass="chat-scroll">
+                <VBox fx:id="interacoesBox" spacing="10" styleClass="chat-area">
+                    <padding>
+                        <Insets top="10" right="10" bottom="10" left="10"/>
+                    </padding>
+                </VBox>
+            </ScrollPane>
+            
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <TextField fx:id="mensagemField" 
+                          promptText="Digite sua mensagem..."
+                          HBox.hgrow="ALWAYS"/>
+                          
+                <Button text="Enviar" 
+                        onAction="#handleEnviarMensagem"
+                        styleClass="primary-button"/>
+            </HBox>
+        </VBox>
+    </HBox>
+</VBox> 

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <java-command-line>
+        <option>--module-path</option>
+        <option>target/dependency</option>
+        <option>--add-modules</option>
+        <option>javafx.controls,javafx.fxml,javafx.graphics,javafx.base</option>
+        <option>--add-opens</option>
+        <option>javafx.controls/com.sun.javafx.scene.control.behavior=ALL-UNNAMED</option>
+        <option>--add-opens</option>
+        <option>javafx.controls/com.sun.javafx.scene.control=ALL-UNNAMED</option>
+        <option>--add-opens</option>
+        <option>javafx.base/com.sun.javafx.binding=ALL-UNNAMED</option>
+        <option>--add-opens</option>
+        <option>javafx.base/com.sun.javafx.event=ALL-UNNAMED</option>
+        <option>--add-opens</option>
+        <option>javafx.graphics/com.sun.javafx.stage=ALL-UNNAMED</option>
+    </java-command-line>
+    <module name="techelp-desktop">
+        <option name="MAIN_CLASS" value="com.techelp.TecHelpApplication"/>
+    </module>
+    <method v="2">
+        <option name="Make" value="true"/>
+    </method>
+</configuration> 

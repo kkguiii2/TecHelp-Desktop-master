@@ -1,0 +1,65 @@
+2025-06-05T10:09:09.458-03:00  WARN 360 --- [JavaFX-Launcher] org.hibernate.orm.deprecation            : HHH90000025: SQLServerDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2025-06-05T10:09:12.334-03:00  WARN 360 --- [JavaFX-Launcher] .s.s.UserDetailsServiceAutoConfiguration : 
+
+Using generated security password: 0d34a3e7-f3be-4423-ac99-09b99cef75b7
+
+This generated password is for development use only. Your security configuration must be updated before running your application in production.
+
+2025-06-05T10:12:43.800-03:00  WARN 11680 --- [JavaFX-Launcher] org.hibernate.orm.deprecation            : HHH90000025: SQLServerDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2025-06-05T10:12:46.584-03:00  WARN 11680 --- [JavaFX-Launcher] .s.s.UserDetailsServiceAutoConfiguration : 
+
+Using generated security password: e884457a-637f-4834-b5a7-e93ba83d1f18
+
+This generated password is for development use only. Your security configuration must be updated before running your application in production.
+
+2025-06-05T10:14:05.280-03:00  WARN 9924 --- [JavaFX-Launcher] org.hibernate.orm.deprecation            : HHH90000025: SQLServerDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2025-06-05T10:14:07.857-03:00  WARN 9924 --- [JavaFX-Launcher] .s.s.UserDetailsServiceAutoConfiguration : 
+
+Using generated security password: 1fe7045b-a265-4112-a943-15bb5b1f8287
+
+This generated password is for development use only. Your security configuration must be updated before running your application in production.
+
+2025-06-05T10:18:36.211-03:00  WARN 7432 --- [JavaFX-Launcher] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.support.BeanDefinitionOverrideException: Invalid bean definition with name 'passwordEncoder' defined in com.techelp.TecHelpConfig: Cannot register bean definition [Root bean: class [null]; scope=; abstract=false; lazyInit=null; autowireMode=3; dependencyCheck=0; autowireCandidate=true; primary=false; factoryBeanName=tecHelpConfig; factoryMethodName=passwordEncoder; initMethodNames=null; destroyMethodNames=[(inferred)]; defined in com.techelp.TecHelpConfig] for bean 'passwordEncoder' since there is already [Root bean: class [null]; scope=; abstract=false; lazyInit=null; autowireMode=3; dependencyCheck=0; autowireCandidate=true; primary=false; factoryBeanName=securityConfig; factoryMethodName=passwordEncoder; initMethodNames=null; destroyMethodNames=[(inferred)]; defined in class path resource [com/techelp/config/SecurityConfig.class]] bound.
+2025-06-05T10:18:36.242-03:00 ERROR 7432 --- [JavaFX-Launcher] o.s.b.d.LoggingFailureAnalysisReporter   : 
+
+***************************
+APPLICATION FAILED TO START
+***************************
+
+Description:
+
+The bean 'passwordEncoder', defined in com.techelp.TecHelpConfig, could not be registered. A bean with that name has already been defined in class path resource [com/techelp/config/SecurityConfig.class] and overriding is disabled.
+
+Action:
+
+Consider renaming one of the beans or enabling overriding by setting spring.main.allow-bean-definition-overriding=true
+
+2025-06-05T10:20:02.421-03:00  WARN 16792 --- [JavaFX-Launcher] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.support.BeanDefinitionOverrideException: Invalid bean definition with name 'passwordEncoder' defined in class path resource [com/techelp/TecHelpConfig.class]: Cannot register bean definition [Root bean: class [null]; scope=; abstract=false; lazyInit=null; autowireMode=3; dependencyCheck=0; autowireCandidate=true; primary=false; factoryBeanName=tecHelpConfig; factoryMethodName=passwordEncoder; initMethodNames=null; destroyMethodNames=[(inferred)]; defined in class path resource [com/techelp/TecHelpConfig.class]] for bean 'passwordEncoder' since there is already [Root bean: class [null]; scope=; abstract=false; lazyInit=null; autowireMode=3; dependencyCheck=0; autowireCandidate=true; primary=false; factoryBeanName=securityConfig; factoryMethodName=passwordEncoder; initMethodNames=null; destroyMethodNames=[(inferred)]; defined in class path resource [com/techelp/config/SecurityConfig.class]] bound.
+2025-06-05T10:20:02.453-03:00 ERROR 16792 --- [JavaFX-Launcher] o.s.b.d.LoggingFailureAnalysisReporter   : 
+
+***************************
+APPLICATION FAILED TO START
+***************************
+
+Description:
+
+The bean 'passwordEncoder', defined in class path resource [com/techelp/TecHelpConfig.class], could not be registered. A bean with that name has already been defined in class path resource [com/techelp/config/SecurityConfig.class] and overriding is disabled.
+
+Action:
+
+Consider renaming one of the beans or enabling overriding by setting spring.main.allow-bean-definition-overriding=true
+
+2025-06-05T10:21:35.002-03:00  WARN 17272 --- [JavaFX-Launcher] org.hibernate.orm.deprecation            : HHH90000025: SQLServerDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2025-06-05T10:21:37.517-03:00  WARN 17272 --- [JavaFX-Launcher] .s.s.UserDetailsServiceAutoConfiguration : 
+
+Using generated security password: 22b6df15-abd7-43fa-8051-271a33544cd2
+
+This generated password is for development use only. Your security configuration must be updated before running your application in production.
+
+2025-06-05T10:22:25.252-03:00  WARN 15572 --- [main] org.hibernate.orm.deprecation            : HHH90000025: SQLServerDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2025-06-05T10:22:27.919-03:00  WARN 15572 --- [main] .s.s.UserDetailsServiceAutoConfiguration : 
+
+Using generated security password: 6edce1b9-fcbb-4cf1-adea-7843281479ff
+
+This generated password is for development use only. Your security configuration must be updated before running your application in production.
+

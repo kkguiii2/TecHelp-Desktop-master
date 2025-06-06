@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.text.Text?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.techelp.controller.PerfilController"
+      spacing="20"
+      alignment="CENTER"
+      stylesheets="@../css/styles.css"
+      styleClass="form-container">
+
+    <padding>
+        <Insets top="50" right="50" bottom="50" left="50"/>
+    </padding>
+
+    <Text text="Meu Perfil"
+          styleClass="title-text"/>
+
+    <VBox spacing="10" alignment="CENTER" styleClass="form">
+        <Label fx:id="tipoLabel" 
+               styleClass="info-label"/>
+               
+        <TextField fx:id="nomeField" 
+                  promptText="Nome completo"
+                  styleClass="input-field"/>
+
+        <TextField fx:id="emailField" 
+                  promptText="Email"
+                  styleClass="input-field"/>
+
+        <PasswordField fx:id="senhaAtualField" 
+                      promptText="Senha atual"
+                      styleClass="input-field"/>
+                      
+        <PasswordField fx:id="novaSenhaField" 
+                      promptText="Nova senha"
+                      styleClass="input-field"/>
+                      
+        <PasswordField fx:id="confirmaSenhaField" 
+                      promptText="Confirmar nova senha"
+                      styleClass="input-field"/>
+
+        <TextField fx:id="telefoneField" 
+                  promptText="Telefone"
+                  styleClass="input-field"/>
+
+        <Button text="Salvar Alterações" 
+                onAction="#handleSalvar"
+                styleClass="primary-button"/>
+
+        <Button text="Voltar" 
+                onAction="#handleVoltar"
+                styleClass="secondary-button"/>
+    </VBox>
+
+    <Label fx:id="mensagemLabel"
+           styleClass="message-label"/>
+</VBox> 

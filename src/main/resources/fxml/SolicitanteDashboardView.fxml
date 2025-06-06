@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.text.Text?>
+<?import javafx.scene.chart.*?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.techelp.controller.SolicitanteDashboardController"
+      stylesheets="@../css/styles.css">
+
+    <HBox styleClass="nav-bar">
+        <padding>
+            <Insets top="10" right="20" bottom="10" left="20"/>
+        </padding>
+        
+        <Label text="TecHelp - Meus Chamados" 
+               styleClass="nav-title"/>
+               
+        <Region HBox.hgrow="ALWAYS"/>
+        
+        <Button text="Novo Chamado" 
+                onAction="#handleNovoChamado"
+                styleClass="primary-button"/>
+                
+        <Button text="Perfil" 
+                onAction="#handlePerfil"
+                styleClass="nav-button"/>
+                
+        <Button text="Sair" 
+                onAction="#handleLogout"
+                styleClass="nav-button"/>
+    </HBox>
+
+    <VBox spacing="20" styleClass="dashboard-container">
+        <padding>
+            <Insets top="20" right="20" bottom="20" left="20"/>
+        </padding>
+        
+        <HBox spacing="20">
+            <VBox styleClass="card" HBox.hgrow="ALWAYS">
+                <Text text="Chamados Abertos" styleClass="card-title"/>
+                <Text fx:id="chamadosAbertosText" styleClass="card-value"/>
+            </VBox>
+            
+            <VBox styleClass="card" HBox.hgrow="ALWAYS">
+                <Text text="Chamados em Andamento" styleClass="card-title"/>
+                <Text fx:id="chamadosAndamentoText" styleClass="card-value"/>
+            </VBox>
+            
+            <VBox styleClass="card" HBox.hgrow="ALWAYS">
+                <Text text="Chamados Resolvidos" styleClass="card-title"/>
+                <Text fx:id="chamadosResolvidosText" styleClass="card-value"/>
+            </VBox>
+        </HBox>
+        
+        <HBox spacing="20" VBox.vgrow="ALWAYS">
+            <VBox spacing="10" HBox.hgrow="ALWAYS">
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <ComboBox fx:id="filtroStatusCombo" 
+                             promptText="Status"/>
+                             
+                    <ComboBox fx:id="filtroPrioridadeCombo"
+                             promptText="Prioridade"/>
+                             
+                    <TextField fx:id="pesquisaField"
+                              promptText="Pesquisar chamados..."
+                              HBox.hgrow="ALWAYS"/>
+                </HBox>
+                
+                <TableView fx:id="chamadosTable" VBox.vgrow="ALWAYS">
+                    <columns>
+                        <TableColumn fx:id="idColumn" text="ID"/>
+                        <TableColumn fx:id="tituloColumn" text="Título"/>
+                        <TableColumn fx:id="tecnicoColumn" text="Técnico"/>
+                        <TableColumn fx:id="statusColumn" text="Status"/>
+                        <TableColumn fx:id="prioridadeColumn" text="Prioridade"/>
+                        <TableColumn fx:id="dataAberturaColumn" text="Data Abertura"/>
+                        <TableColumn fx:id="tempoDecorridoColumn" text="Tempo Decorrido"/>
+                        <TableColumn fx:id="acoesColumn" text="Ações"/>
+                    </columns>
+                </TableView>
+            </VBox>
+            
+            <VBox spacing="10" minWidth="300">
+                <Text text="Chamados por Status" styleClass="section-text"/>
+                <PieChart fx:id="chamadosPorStatusChart" 
+                         legendVisible="true"
+                         VBox.vgrow="ALWAYS"/>
+                         
+                <Text text="Chamados por Categoria" styleClass="section-text"/>
+                <PieChart fx:id="chamadosPorCategoriaChart" 
+                         legendVisible="true"
+                         VBox.vgrow="ALWAYS"/>
+            </VBox>
+        </HBox>
+    </VBox>
+</VBox> 

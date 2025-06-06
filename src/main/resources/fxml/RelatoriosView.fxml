@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.text.Text?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.techelp.controller.RelatoriosController"
+      stylesheets="@../css/styles.css">
+
+    <HBox styleClass="nav-bar">
+        <padding>
+            <Insets top="10" right="20" bottom="10" left="20"/>
+        </padding>
+        
+        <Label text="Relatórios" 
+               styleClass="nav-title"/>
+               
+        <Region HBox.hgrow="ALWAYS"/>
+        
+        <Button text="Voltar" 
+                onAction="#handleVoltar"
+                styleClass="nav-button"/>
+    </HBox>
+
+    <VBox spacing="20" styleClass="dashboard-container">
+        <padding>
+            <Insets top="20" right="20" bottom="20" left="20"/>
+        </padding>
+        
+        <VBox spacing="10" styleClass="card">
+            <Text text="Relatório de Chamados por Técnico" 
+                  styleClass="card-title"/>
+                  
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <DatePicker fx:id="dataInicioPicker"
+                           promptText="Data Início"/>
+                           
+                <DatePicker fx:id="dataFimPicker"
+                           promptText="Data Fim"/>
+                           
+                <ComboBox fx:id="tecnicoCombo"
+                         promptText="Selecione o técnico"/>
+                         
+                <Button text="Gerar PDF" 
+                        onAction="#handleGerarRelatorioPorTecnico"
+                        styleClass="primary-button"/>
+            </HBox>
+        </VBox>
+        
+        <VBox spacing="10" styleClass="card">
+            <Text text="Relatório de Desempenho" 
+                  styleClass="card-title"/>
+                  
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <DatePicker fx:id="dataInicioDesempenhoPicker"
+                           promptText="Data Início"/>
+                           
+                <DatePicker fx:id="dataFimDesempenhoPicker"
+                           promptText="Data Fim"/>
+                           
+                <Button text="Gerar PDF" 
+                        onAction="#handleGerarRelatorioDesempenho"
+                        styleClass="primary-button"/>
+            </HBox>
+        </VBox>
+        
+        <VBox spacing="10" styleClass="card">
+            <Text text="Relatório de Chamados por Categoria" 
+                  styleClass="card-title"/>
+                  
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <DatePicker fx:id="dataInicioCategoriasPicker"
+                           promptText="Data Início"/>
+                           
+                <DatePicker fx:id="dataFimCategoriasPicker"
+                           promptText="Data Fim"/>
+                           
+                <ComboBox fx:id="categoriaCombo"
+                         promptText="Selecione a categoria"/>
+                         
+                <Button text="Gerar PDF" 
+                        onAction="#handleGerarRelatorioPorCategoria"
+                        styleClass="primary-button"/>
+            </HBox>
+        </VBox>
+    </VBox>
+</VBox> 

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.text.Text?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.techelp.controller.UsuarioFormController"
+      spacing="20"
+      alignment="CENTER"
+      stylesheets="@../css/styles.css"
+      styleClass="form-container">
+
+    <padding>
+        <Insets top="50" right="50" bottom="50" left="50"/>
+    </padding>
+
+    <Text text="Usuário"
+          styleClass="title-text"/>
+
+    <VBox spacing="10" alignment="CENTER" styleClass="form">
+        <TextField fx:id="nomeField" 
+                  promptText="Nome completo"
+                  styleClass="input-field"/>
+
+        <TextField fx:id="emailField" 
+                  promptText="Email"
+                  styleClass="input-field"/>
+
+        <PasswordField fx:id="senhaField" 
+                      promptText="Senha"
+                      styleClass="input-field"/>
+
+        <TextField fx:id="telefoneField" 
+                  promptText="Telefone"
+                  styleClass="input-field"/>
+
+        <ComboBox fx:id="tipoUsuarioCombo"
+                  promptText="Tipo de usuário"
+                  styleClass="input-field"/>
+
+        <HBox spacing="10" alignment="CENTER">
+            <Button text="Salvar" 
+                    onAction="#handleSalvar"
+                    styleClass="primary-button"/>
+
+            <Button text="Cancelar" 
+                    onAction="#handleCancelar"
+                    styleClass="secondary-button"/>
+        </HBox>
+    </VBox>
+
+    <Text fx:id="mensagemErro"
+          styleClass="error-text"
+          visible="false"/>
+</VBox> 

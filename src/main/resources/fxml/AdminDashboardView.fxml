@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+<?import javafx.scene.chart.*?>
+<?import javafx.geometry.Insets?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.techelp.controller.AdminDashboardController"
+      stylesheets="@../css/styles.css"
+      styleClass="root">
+
+    <!-- Barra de navegação -->
+    <HBox styleClass="nav-bar">
+        <padding>
+            <Insets top="10" right="20" bottom="10" left="20"/>
+        </padding>
+        
+        <Label text="Dashboard Administrativo" styleClass="nav-title"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        
+        <Button text="Usuários" 
+                onAction="#handleUsuarios"
+                styleClass="nav-button"/>
+                
+        <Button text="Relatórios" 
+                onAction="#handleRelatorios"
+                styleClass="nav-button"/>
+                
+        <Button text="Perfil" 
+                onAction="#handlePerfil"
+                styleClass="nav-button"/>
+                
+        <Button text="Sair" 
+                onAction="#handleLogout"
+                styleClass="nav-button"/>
+    </HBox>
+
+    <!-- Container principal -->
+    <VBox spacing="20" styleClass="dashboard-container">
+        <padding>
+            <Insets top="20" right="20" bottom="20" left="20"/>
+        </padding>
+        
+        <!-- Cards de estatísticas -->
+        <HBox spacing="20">
+            <VBox styleClass="card" HBox.hgrow="ALWAYS">
+                <Text text="Total de Chamados" styleClass="card-title"/>
+                <Text fx:id="totalChamadosText" styleClass="card-value"/>
+            </VBox>
+            
+            <VBox styleClass="card" HBox.hgrow="ALWAYS">
+                <Text text="Chamados Abertos" styleClass="card-title"/>
+                <Text fx:id="chamadosAbertosText" styleClass="card-value"/>
+            </VBox>
+            
+            <VBox styleClass="card" HBox.hgrow="ALWAYS">
+                <Text text="Tempo Médio Resolução" styleClass="card-title"/>
+                <Text fx:id="tempoMedioText" styleClass="card-value"/>
+            </VBox>
+        </HBox>
+        
+        <!-- Gráficos -->
+        <HBox spacing="20">
+            <VBox styleClass="card" HBox.hgrow="ALWAYS">
+                <Text text="Chamados por Categoria" styleClass="card-title"/>
+                <PieChart fx:id="chamadosPorCategoriaChart" 
+                         legendVisible="true"
+                         labelsVisible="true"/>
+            </VBox>
+            
+            <VBox styleClass="card" HBox.hgrow="ALWAYS">
+                <Text text="Chamados por Técnico" styleClass="card-title"/>
+                <BarChart fx:id="chamadosPorTecnicoChart">
+                    <xAxis>
+                        <CategoryAxis label="Técnico"/>
+                    </xAxis>
+                    <yAxis>
+                        <NumberAxis label="Quantidade"/>
+                    </yAxis>
+                </BarChart>
+            </VBox>
+        </HBox>
+        
+        <!-- Filtros e tabela -->
+        <HBox spacing="10" alignment="CENTER_LEFT">
+            <ComboBox fx:id="filtroStatusCombo" 
+                     promptText="Status"
+                     styleClass="filter-combo"/>
+                     
+            <ComboBox fx:id="filtroPrioridadeCombo"
+                     promptText="Prioridade"
+                     styleClass="filter-combo"/>
+                     
+            <ComboBox fx:id="filtroTecnicoCombo"
+                     promptText="Técnico"
+                     styleClass="filter-combo"/>
+                     
+            <TextField fx:id="pesquisaField"
+                      promptText="Pesquisar chamados..."
+                      styleClass="search-field"
+                      HBox.hgrow="ALWAYS"/>
+        </HBox>
+        
+        <TableView fx:id="chamadosTable" VBox.vgrow="ALWAYS" styleClass="chamados-table">
+            <columns>
+                <TableColumn fx:id="idColumn" text="ID" prefWidth="50"/>
+                <TableColumn fx:id="tituloColumn" text="Título" prefWidth="200"/>
+                <TableColumn fx:id="solicitanteColumn" text="Solicitante" prefWidth="150"/>
+                <TableColumn fx:id="tecnicoColumn" text="Técnico" prefWidth="150"/>
+                <TableColumn fx:id="statusColumn" text="Status" prefWidth="100"/>
+                <TableColumn fx:id="prioridadeColumn" text="Prioridade" prefWidth="100"/>
+                <TableColumn fx:id="dataAberturaColumn" text="Data de Abertura" prefWidth="150"/>
+                <TableColumn fx:id="acoesColumn" text="Ações" prefWidth="150"/>
+            </columns>
+        </TableView>
+    </VBox>
+</VBox> 

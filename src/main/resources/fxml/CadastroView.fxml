@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.text.Text?>
+<?import javafx.scene.text.TextFlow?>
+
+<ScrollPane xmlns="http://javafx.com/javafx"
+           xmlns:fx="http://javafx.com/fxml"
+           fx:controller="com.techelp.controller.CadastroController"
+           fitToWidth="true"
+           fitToHeight="true"
+           styleClass="transparent-scroll-pane">
+           
+    <StackPane>
+        <VBox spacing="10"
+              alignment="CENTER"
+              stylesheets="@../css/styles.css"
+              styleClass="modern-container">
+
+            <padding>
+                <Insets top="20" right="30" bottom="20" left="30"/>
+            </padding>
+
+            <!-- Título -->
+            <VBox spacing="5" alignment="CENTER">
+                <Text text="Bem vindo ao" styleClass="welcome-text"/>
+                <Text text="Registro" styleClass="brand-text"/>
+            </VBox>
+
+            <!-- Subtítulo -->
+            <Text text="Preencha os dados do registro para acessar" 
+                  styleClass="subtitle-text"/>
+
+            <!-- Formulário -->
+            <VBox spacing="15" alignment="CENTER" styleClass="form-container">
+                <!-- Nome de Usuário -->
+                <VBox spacing="5">
+                    <Text text="Nome de Usuário" styleClass="field-label"/>
+                    <TextField fx:id="nomeField" 
+                              styleClass="modern-field"/>
+                </VBox>
+
+                <!-- Email -->
+                <VBox spacing="5">
+                    <Text text="Email" styleClass="field-label"/>
+                    <TextField fx:id="emailField" 
+                              styleClass="modern-field"/>
+                </VBox>
+
+                <!-- Departamento -->
+                <VBox spacing="5">
+                    <Text text="Selecione o Departamento" styleClass="field-label"/>
+                    <ComboBox fx:id="departamentoCombo"
+                             styleClass="modern-field"
+                             maxWidth="Infinity"/>
+                </VBox>
+
+                <!-- Senha -->
+                <VBox spacing="5">
+                    <Text text="Senha" styleClass="field-label"/>
+                    <PasswordField fx:id="senhaField" 
+                                  styleClass="modern-field"/>
+                </VBox>
+
+                <!-- Confirmar Senha -->
+                <VBox spacing="5">
+                    <Text text="Confirmar Senha" styleClass="field-label"/>
+                    <PasswordField fx:id="confirmarSenhaField" 
+                                  styleClass="modern-field"/>
+                </VBox>
+
+                <!-- Botão de Cadastro -->
+                <Button text="CADASTRAR" 
+                        onAction="#handleCadastro"
+                        styleClass="modern-button"/>
+
+                <!-- Link para Login -->
+                <Hyperlink text="Já tem uma conta? Faça login"
+                           onAction="#handleVoltar"
+                           styleClass="modern-link"/>
+            </VBox>
+
+            <!-- Mensagem de Erro -->
+            <Text fx:id="mensagemErro"
+                  styleClass="error-text"
+                  visible="false"
+                  wrappingWidth="280"/>
+
+            <!-- LGPD -->
+            <VBox spacing="10" alignment="CENTER" maxWidth="280">
+                <CheckBox fx:id="lgpdCheckbox"
+                          text="Li e aceito os termos de uso e política de privacidade"
+                          styleClass="modern-checkbox"
+                          wrapText="true"/>
+
+                <Hyperlink text="Ver Política de Privacidade"
+                           onAction="#handlePoliticaPrivacidade"
+                           styleClass="modern-link"/>
+            </VBox>
+        </VBox>
+    </StackPane>
+</ScrollPane> 

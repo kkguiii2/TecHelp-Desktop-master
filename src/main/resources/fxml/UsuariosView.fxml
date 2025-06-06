@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.text.Text?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.techelp.controller.UsuariosController"
+      stylesheets="@../css/styles.css">
+
+    <HBox styleClass="nav-bar">
+        <padding>
+            <Insets top="10" right="20" bottom="10" left="20"/>
+        </padding>
+        
+        <Label text="Gerenciamento de Usuários" 
+               styleClass="nav-title"/>
+               
+        <Region HBox.hgrow="ALWAYS"/>
+        
+        <Button text="Voltar" 
+                onAction="#handleVoltar"
+                styleClass="nav-button"/>
+    </HBox>
+
+    <VBox spacing="20" styleClass="dashboard-container">
+        <padding>
+            <Insets top="20" right="20" bottom="20" left="20"/>
+        </padding>
+        
+        <HBox spacing="10" alignment="CENTER_LEFT">
+            <TextField fx:id="pesquisaField" 
+                      promptText="Pesquisar usuários..."
+                      styleClass="input-field"
+                      HBox.hgrow="ALWAYS"/>
+                      
+            <ComboBox fx:id="filtroTipoCombo"
+                      promptText="Tipo de usuário"/>
+                      
+            <Button text="Novo Usuário" 
+                    onAction="#handleNovoUsuario"
+                    styleClass="primary-button"/>
+        </HBox>
+        
+        <TableView fx:id="usuariosTable" VBox.vgrow="ALWAYS">
+            <columns>
+                <TableColumn fx:id="idColumn" text="ID"/>
+                <TableColumn fx:id="nomeColumn" text="Nome"/>
+                <TableColumn fx:id="emailColumn" text="Email"/>
+                <TableColumn fx:id="tipoColumn" text="Tipo"/>
+                <TableColumn fx:id="telefoneColumn" text="Telefone"/>
+                <TableColumn fx:id="dataCriacaoColumn" text="Data Criação"/>
+                <TableColumn fx:id="ultimoAcessoColumn" text="Último Acesso"/>
+                <TableColumn fx:id="acoesColumn" text="Ações"/>
+            </columns>
+        </TableView>
+    </VBox>
+</VBox> 

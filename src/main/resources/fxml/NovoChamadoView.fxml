@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.text.Text?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.techelp.controller.NovoChamadoController"
+      spacing="20"
+      alignment="CENTER"
+      stylesheets="@../css/styles.css"
+      styleClass="login-container">
+
+    <padding>
+        <Insets top="50" right="50" bottom="50" left="50"/>
+    </padding>
+
+    <Text text="Novo Chamado"
+          styleClass="title-text"/>
+
+    <VBox spacing="10" alignment="CENTER" styleClass="login-form">
+        <TextField fx:id="tituloField" 
+                  promptText="Título do chamado"
+                  styleClass="input-field"/>
+
+        <TextArea fx:id="descricaoArea" 
+                  promptText="Descrição detalhada do problema"
+                  wrapText="true"
+                  prefRowCount="5"
+                  styleClass="input-field"/>
+
+        <ComboBox fx:id="categoriaCombo"
+                  promptText="Categoria"
+                  styleClass="input-field"/>
+
+        <ComboBox fx:id="prioridadeCombo"
+                  promptText="Prioridade"
+                  styleClass="input-field"/>
+
+        <HBox spacing="10" alignment="CENTER">
+            <Button text="Criar Chamado" 
+                    onAction="#handleCriarChamado"
+                    styleClass="primary-button"/>
+
+            <Button text="Cancelar" 
+                    onAction="#handleVoltar"
+                    styleClass="secondary-button"/>
+        </HBox>
+    </VBox>
+
+    <Text fx:id="mensagemErro"
+          styleClass="error-text"
+          visible="false"/>
+</VBox> 

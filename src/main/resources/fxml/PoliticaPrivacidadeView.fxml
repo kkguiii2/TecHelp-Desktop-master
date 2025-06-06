@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.text.Text?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.techelp.controller.PoliticaPrivacidadeController"
+      spacing="20"
+      styleClass="login-container"
+      stylesheets="@../css/styles.css">
+    
+    <padding>
+        <Insets top="30" right="50" bottom="30" left="50"/>
+    </padding>
+    
+    <Text text="Política de Privacidade e Termos de Uso"
+          styleClass="title-text"/>
+          
+    <TextArea fx:id="politicaArea"
+              prefRowCount="20"
+              prefColumnCount="50"
+              wrapText="true"
+              editable="false"
+              styleClass="politica-text-area"/>
+              
+    <Button text="Fechar"
+            onAction="#handleFechar"
+            styleClass="secondary-button"/>
+            
+</VBox> 
