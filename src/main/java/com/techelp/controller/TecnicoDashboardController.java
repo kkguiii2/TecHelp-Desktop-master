@@ -353,42 +353,15 @@ public class TecnicoDashboardController extends BaseController {
         acoesColumn.setCellFactory(col -> new TableCell<ChamadoDTO, Void>() {
             private final Button verButton = new Button("Ver");
             private final Button resolverButton = new Button("Resolver");
-            private final MenuButton statusButton = new MenuButton("Status");
             private final HBox container = new HBox(5); // 5px de espaçamento
 
             {
                 // Configurar botões
                 verButton.getStyleClass().addAll("action-button", "view");
                 resolverButton.getStyleClass().addAll("action-button", "resolve");
-                statusButton.getStyleClass().addAll("action-button", "status");
-                
-                // Configurar menu de status
-                MenuItem emAndamentoItem = new MenuItem("Em Andamento");
-                MenuItem cancelarItem = new MenuItem("Cancelar");
-                
-                emAndamentoItem.setOnAction(event -> {
-                    ChamadoDTO chamado = getTableView().getItems().get(getIndex());
-                    alterarStatusChamado(chamado, Chamado.StatusChamado.EM_ANDAMENTO);
-                });
-                
-                cancelarItem.setOnAction(event -> {
-                    ChamadoDTO chamado = getTableView().getItems().get(getIndex());
-                    Alert confirmacao = new Alert(Alert.AlertType.CONFIRMATION);
-                    confirmacao.setTitle("Cancelar Chamado");
-                    confirmacao.setHeaderText("Tem certeza que deseja cancelar este chamado?");
-                    confirmacao.setContentText("Esta ação não pode ser desfeita.");
-                    
-                    confirmacao.showAndWait().ifPresent(response -> {
-                        if (response == ButtonType.OK) {
-                            alterarStatusChamado(chamado, Chamado.StatusChamado.CANCELADO);
-                        }
-                    });
-                });
-                
-                statusButton.getItems().addAll(emAndamentoItem, cancelarItem);
                 
                 // Configurar container
-                container.getChildren().addAll(verButton, resolverButton, statusButton);
+                container.getChildren().addAll(verButton, resolverButton);
                 container.setAlignment(javafx.geometry.Pos.CENTER);
 
                 // Configurar ações
@@ -414,8 +387,6 @@ public class TecnicoDashboardController extends BaseController {
                     // Ajustar visibilidade dos botões baseado no status
                     resolverButton.setVisible(chamado.getStatus() != Chamado.StatusChamado.FECHADO && 
                                            chamado.getStatus() != Chamado.StatusChamado.CANCELADO);
-                    statusButton.setVisible(chamado.getStatus() != Chamado.StatusChamado.FECHADO && 
-                                         chamado.getStatus() != Chamado.StatusChamado.CANCELADO);
                     
                     setGraphic(container);
                 }

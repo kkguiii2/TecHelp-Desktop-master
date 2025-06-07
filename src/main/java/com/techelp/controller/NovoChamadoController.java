@@ -24,9 +24,6 @@ public class NovoChamadoController extends BaseController {
     private TextArea descricaoArea;
     
     @FXML
-    private ComboBox<Chamado.PrioridadeChamado> prioridadeCombo;
-    
-    @FXML
     private ComboBox<Chamado.CategoriaChamado> categoriaCombo;
     
     public NovoChamadoController() {
@@ -46,10 +43,6 @@ public class NovoChamadoController extends BaseController {
                 return;
             }
             
-            // Configura o ComboBox de prioridade
-            prioridadeCombo.setItems(FXCollections.observableArrayList(Chamado.PrioridadeChamado.values()));
-            prioridadeCombo.setValue(Chamado.PrioridadeChamado.MEDIA);
-            
             // Configura o ComboBox de categoria
             categoriaCombo.setItems(FXCollections.observableArrayList(Chamado.CategoriaChamado.values()));
             categoriaCombo.setValue(Chamado.CategoriaChamado.OUTROS);
@@ -68,7 +61,7 @@ public class NovoChamadoController extends BaseController {
             
             // Validação dos campos
             if (tituloField.getText().isEmpty() || descricaoArea.getText().isEmpty() || 
-                categoriaCombo.getValue() == null || prioridadeCombo.getValue() == null) {
+                categoriaCombo.getValue() == null) {
                 mostrarErro("Por favor, preencha todos os campos");
                 return;
             }
@@ -77,7 +70,6 @@ public class NovoChamadoController extends BaseController {
             Chamado novoChamado = new Chamado();
             novoChamado.setTitulo(tituloField.getText());
             novoChamado.setDescricao(descricaoArea.getText());
-            novoChamado.setPrioridade(prioridadeCombo.getValue());
             novoChamado.setCategoria(categoriaCombo.getValue().toString());
             novoChamado.setSolicitante(usuarioLogado);
             novoChamado.setStatus(Chamado.StatusChamado.ABERTO);

@@ -20,6 +20,8 @@ import java.net.URL;
 import javafx.application.Platform;
 import javafx.util.Duration;
 import javafx.animation.PauseTransition;
+import javafx.scene.paint.Color;
+import javafx.scene.layout.VBox;
 
 public class CadastroController extends BaseController {
     
@@ -46,6 +48,15 @@ public class CadastroController extends BaseController {
     
     @FXML
     private Text mensagemErro;
+    
+    @FXML
+    private Text emailValidationText;
+    
+    @FXML
+    private VBox senhaCriteriaBox;
+    
+    @FXML
+    private Text confirmarSenhaValidationText;
     
     public CadastroController() {
         this.usuarioService = new UsuarioService();
@@ -78,6 +89,94 @@ public class CadastroController extends BaseController {
         confirmarSenhaField.textProperty().addListener((obs, old, newValue) -> mensagemErro.setVisible(false));
         departamentoCombo.valueProperty().addListener((obs, old, newValue) -> mensagemErro.setVisible(false));
         lgpdCheckbox.selectedProperty().addListener((obs, old, newValue) -> mensagemErro.setVisible(false));
+        
+        // Validação em tempo real do Email
+        emailField.textProperty().addListener((obs, oldVal, val) -> {
+            boolean valido = val.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
+            if (val.isEmpty()) {
+                emailField.setStyle("");
+                emailValidationText.setVisible(false);
+            } else if (valido) {
+                emailField.setStyle("-fx-border-color: #43a047; -fx-border-width: 0 0 2 0;");
+                emailValidationText.setVisible(false);
+            } else {
+                emailField.setStyle("-fx-border-color: #e53935; -fx-border-width: 0 0 2 0;");
+                emailValidationText.setText("Email inválido");
+                emailValidationText.setVisible(true);
+            }
+        });
+
+        // Critérios de senha
+        senhaCriteriaBox.getChildren().clear();
+        Text minLen = new Text("✗ Pelo menos 8 caracteres");
+        Text upper = new Text("✗ Uma letra maiúscula");
+        Text lower = new Text("✗ Uma letra minúscula");
+        Text digit = new Text("✗ Um número");
+        Text special = new Text("✗ Um caractere especial");
+        for (Text t : new Text[]{minLen, upper, lower, digit, special}) {
+            t.setFill(Color.web("#888"));
+            t.setStyle("-fx-font-size: 12px;");
+        }
+        senhaCriteriaBox.getChildren().addAll(minLen, upper, lower, digit, special);
+
+        senhaField.textProperty().addListener((obs, oldVal, val) -> {
+            boolean okLen = val.length() >= 8;
+            boolean okUpper = val.matches(".*[A-Z].*");
+            boolean okLower = val.matches(".*[a-z].*");
+            boolean okDigit = val.matches(".*\\d.*");
+            boolean okSpecial = val.matches(".*[^A-Za-z0-9].*");
+            minLen.setText((okLen ? "✓" : "✗") + " Pelo menos 8 caracteres");
+            minLen.setFill(okLen ? Color.web("#43a047") : Color.web("#e53935"));
+            upper.setText((okUpper ? "✓" : "✗") + " Uma letra maiúscula");
+            upper.setFill(okUpper ? Color.web("#43a047") : Color.web("#e53935"));
+            lower.setText((okLower ? "✓" : "✗") + " Uma letra minúscula");
+            lower.setFill(okLower ? Color.web("#43a047") : Color.web("#e53935"));
+            digit.setText((okDigit ? "✓" : "✗") + " Um número");
+            digit.setFill(okDigit ? Color.web("#43a047") : Color.web("#e53935"));
+            special.setText((okSpecial ? "✓" : "✗") + " Um caractere especial");
+            special.setFill(okSpecial ? Color.web("#43a047") : Color.web("#e53935"));
+            if (okLen && okUpper && okLower && okDigit && okSpecial) {
+                senhaField.setStyle("-fx-border-color: #43a047; -fx-border-width: 0 0 2 0;");
+            } else {
+                senhaField.setStyle("-fx-border-color: #e53935; -fx-border-width: 0 0 2 0;");
+            }
+        });
+
+        // Validação em tempo real do Confirmar Senha
+        confirmarSenhaField.textProperty().addListener((obs, oldVal, val) -> {
+            String senha = senhaField.getText();
+            if (val.isEmpty()) {
+                confirmarSenhaField.setStyle("");
+                confirmarSenhaValidationText.setVisible(false);
+            } else if (val.equals(senha)) {
+                confirmarSenhaField.setStyle("-fx-border-color: #43a047; -fx-border-width: 0 0 2 0;");
+                confirmarSenhaValidationText.setText("Senhas coincidem");
+                confirmarSenhaValidationText.setFill(Color.web("#43a047"));
+                confirmarSenhaValidationText.setVisible(true);
+            } else {
+                confirmarSenhaField.setStyle("-fx-border-color: #e53935; -fx-border-width: 0 0 2 0;");
+                confirmarSenhaValidationText.setText("Senhas não coincidem");
+                confirmarSenhaValidationText.setFill(Color.web("#e53935"));
+                confirmarSenhaValidationText.setVisible(true);
+            }
+        });
+        // Atualizar confirmação ao digitar na senha principal
+        senhaField.textProperty().addListener((obs, oldVal, val) -> {
+            String confirmar = confirmarSenhaField.getText();
+            if (!confirmar.isEmpty()) {
+                if (confirmar.equals(val)) {
+                    confirmarSenhaField.setStyle("-fx-border-color: #43a047; -fx-border-width: 0 0 2 0;");
+                    confirmarSenhaValidationText.setText("Senhas coincidem");
+                    confirmarSenhaValidationText.setFill(Color.web("#43a047"));
+                    confirmarSenhaValidationText.setVisible(true);
+                } else {
+                    confirmarSenhaField.setStyle("-fx-border-color: #e53935; -fx-border-width: 0 0 2 0;");
+                    confirmarSenhaValidationText.setText("Senhas não coincidem");
+                    confirmarSenhaValidationText.setFill(Color.web("#e53935"));
+                    confirmarSenhaValidationText.setVisible(true);
+                }
+            }
+        });
     }
     
     @FXML

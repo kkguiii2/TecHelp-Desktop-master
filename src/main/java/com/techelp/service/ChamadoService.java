@@ -325,31 +325,39 @@ public class ChamadoService {
     }
 
     private void ajustarPrioridadeAutomatica(Chamado chamado) {
+        String categoria = chamado.getCategoriaIa();
         String descricao = chamado.getDescricao().toLowerCase();
         
-        // Palavras que indicam alta prioridade
-        if (descricao.contains("urgente") || 
-            descricao.contains("crítico") || 
-            descricao.contains("emergência") ||
-            descricao.contains("parado") ||
-            descricao.contains("não funciona")) {
+        // Define prioridade alta para categorias críticas
+        if (categoria.equals("REDE") || categoria.equals("HARDWARE")) {
             chamado.setPrioridade(Chamado.PrioridadeChamado.ALTA);
         }
-        // Palavras que indicam prioridade crítica
-        else if (descricao.contains("produção") ||
-                 descricao.contains("sistema fora") ||
-                 descricao.contains("servidor down")) {
-            chamado.setPrioridade(Chamado.PrioridadeChamado.CRITICA);
-        }
-        // Palavras que indicam baixa prioridade
-        else if (descricao.contains("quando puder") ||
-                 descricao.contains("não urgente") ||
-                 descricao.contains("baixa prioridade")) {
-            chamado.setPrioridade(Chamado.PrioridadeChamado.BAIXA);
-        }
-        // Prioridade padrão
+        // Define prioridade média para outras categorias, exceto se houver palavras-chave de urgência
         else {
-            chamado.setPrioridade(Chamado.PrioridadeChamado.MEDIA);
+            // Palavras que indicam alta prioridade
+            if (descricao.contains("urgente") || 
+                descricao.contains("crítico") || 
+                descricao.contains("emergência") ||
+                descricao.contains("parado") ||
+                descricao.contains("não funciona")) {
+                chamado.setPrioridade(Chamado.PrioridadeChamado.ALTA);
+            }
+            // Palavras que indicam prioridade crítica
+            else if (descricao.contains("produção") ||
+                     descricao.contains("sistema fora") ||
+                     descricao.contains("servidor down")) {
+                chamado.setPrioridade(Chamado.PrioridadeChamado.CRITICA);
+            }
+            // Palavras que indicam baixa prioridade
+            else if (descricao.contains("quando puder") ||
+                     descricao.contains("não urgente") ||
+                     descricao.contains("baixa prioridade")) {
+                chamado.setPrioridade(Chamado.PrioridadeChamado.BAIXA);
+            }
+            // Prioridade padrão para outras categorias
+            else {
+                chamado.setPrioridade(Chamado.PrioridadeChamado.MEDIA);
+            }
         }
     }
     

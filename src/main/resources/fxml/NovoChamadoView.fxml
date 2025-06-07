@@ -35,10 +35,6 @@
                   promptText="Categoria"
                   styleClass="input-field"/>
 
-        <ComboBox fx:id="prioridadeCombo"
-                  promptText="Prioridade"
-                  styleClass="input-field"/>
-
         <HBox spacing="10" alignment="CENTER">
             <Button text="Criar Chamado" 
                     onAction="#handleCriarChamado"

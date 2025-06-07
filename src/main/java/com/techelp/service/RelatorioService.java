@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 import java.time.LocalDate;
+import java.util.ArrayList;
 
 public class RelatorioService {
     
@@ -40,25 +41,31 @@ public class RelatorioService {
             document.open();
             adicionarCabecalho(document, "Relatório de Chamados por Técnico");
             
-            List<Chamado> chamados = chamadoRepository.findByTecnicoEStatus(tecnico, Chamado.StatusChamado.FECHADO);
+            List<Chamado> chamadosFechados = chamadoRepository.findByTecnicoEStatus(tecnico, Chamado.StatusChamado.FECHADO);
+            List<Chamado> chamadosCancelados = chamadoRepository.findByTecnicoEStatus(tecnico, Chamado.StatusChamado.CANCELADO);
+            List<Chamado> chamados = new ArrayList<>();
+            chamados.addAll(chamadosFechados);
+            chamados.addAll(chamadosCancelados);
             
             // Tabela de estatísticas
             PdfPTable estatisticas = new PdfPTable(2);
             estatisticas.setWidthPercentage(100);
             
             adicionarLinha(estatisticas, "Total de Chamados", String.valueOf(chamados.size()));
+            adicionarLinha(estatisticas, "Chamados Fechados", String.valueOf(chamadosFechados.size()));
+            adicionarLinha(estatisticas, "Chamados Cancelados", String.valueOf(chamadosCancelados.size()));
             adicionarLinha(estatisticas, "Tempo Médio de Resolução", 
-                calcularTempoMedioResolucao(chamados) + " horas");
+                calcularTempoMedioResolucao(chamadosFechados) + " horas");
             
             document.add(estatisticas);
             document.add(Chunk.NEWLINE);
             
             // Tabela de chamados
-            PdfPTable tabela = new PdfPTable(5);
+            PdfPTable tabela = new PdfPTable(6);
             tabela.setWidthPercentage(100);
             
             // Cabeçalho
-            List<String> cabecalhos = Arrays.asList("ID", "Título", "Prioridade", "Data Abertura", "Tempo Resolução");
+            List<String> cabecalhos = Arrays.asList("ID", "Título", "Status", "Prioridade", "Data Abertura", "Tempo Resolução");
             for (String titulo : cabecalhos) {
                 PdfPCell header = new PdfPCell();
                 header.setBackgroundColor(BaseColor.LIGHT_GRAY);
@@ -71,9 +78,10 @@ public class RelatorioService {
             for (Chamado chamado : chamados) {
                 tabela.addCell(chamado.getId().toString());
                 tabela.addCell(chamado.getTitulo());
+                tabela.addCell(chamado.getStatus().toString());
                 tabela.addCell(chamado.getPrioridade().toString());
                 tabela.addCell(DATE_FORMATTER.format(chamado.getDataAbertura()));
-                tabela.addCell(chamado.getTempoResolucao() + "h");
+                tabela.addCell(chamado.getTempoResolucao() != null ? chamado.getTempoResolucao() + "h" : "N/A");
             }
             
             document.add(tabela);
@@ -277,12 +285,28 @@ public class RelatorioService {
             document.add(new Paragraph("Período: " + dataInicio.format(dateFormatter) + 
                 " a " + dataFim.format(dateFormatter)));
             
-            List<Chamado> chamados = chamadoRepository.findByTecnicoEPeriodo(
-                tecnico,
-                dataInicio.atStartOfDay(),
-                dataFim.atTime(23, 59, 59)
-            );
+            LocalDateTime inicio = dataInicio.atStartOfDay();
+            LocalDateTime fim = dataFim.atTime(23, 59, 59);
             
+            List<Chamado> chamadosFechados = chamadoRepository.findByTecnicoEStatus(tecnico, Chamado.StatusChamado.FECHADO);
+            List<Chamado> chamadosCancelados = chamadoRepository.findByTecnicoEStatus(tecnico, Chamado.StatusChamado.CANCELADO);
+            List<Chamado> chamados = new ArrayList<>();
+            chamados.addAll(chamadosFechados);
+            chamados.addAll(chamadosCancelados);
+            
+            // Filtrar por período
+            chamados = chamados.stream()
+                .filter(c -> c.getDataAbertura().isAfter(inicio) && c.getDataAbertura().isBefore(fim))
+                .collect(Collectors.toList());
+            
+            // Adicionar estatísticas
+            document.add(new Paragraph("\nEstatísticas:"));
+            document.add(new Paragraph("Total de Chamados: " + chamados.size()));
+            document.add(new Paragraph("Chamados Fechados: " + chamadosFechados.size()));
+            document.add(new Paragraph("Chamados Cancelados: " + chamadosCancelados.size()));
+            
+            // Adicionar detalhes dos chamados
+            document.add(new Paragraph("\nDetalhes dos Chamados:"));
             for (Chamado chamado : chamados) {
                 document.add(new Paragraph("\nChamado #" + chamado.getId()));
                 document.add(new Paragraph("Título: " + chamado.getTitulo()));
@@ -293,6 +317,9 @@ public class RelatorioService {
                 if (chamado.getDataFechamento() != null) {
                     document.add(new Paragraph("Data Fechamento: " + 
                         chamado.getDataFechamento().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))));
+                }
+                if (chamado.getTempoResolucao() != null) {
+                    document.add(new Paragraph("Tempo de Resolução: " + chamado.getTempoResolucao() + " horas"));
                 }
             }
             

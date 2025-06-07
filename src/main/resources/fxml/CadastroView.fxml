@@ -23,15 +23,12 @@
     <!-- Conteúdo principal -->
     <VBox styleClass="center-container" alignment="CENTER">
         <VBox styleClass="modern-container" alignment="CENTER" spacing="15">
-            <!-- Título -->
+            <!-- Título e Subtítulo -->
             <VBox spacing="5" alignment="CENTER">
                 <Text text="Bem vindo ao" styleClass="welcome-text"/>
                 <Text text="Registro" styleClass="brand-text"/>
+                <Text text="Preencha os dados do registro para acessar" styleClass="subtitle-text"/>
             </VBox>
-
-            <!-- Subtítulo -->
-            <Text text="Preencha os dados do registro para acessar" 
-                  styleClass="subtitle-text"/>
 
             <!-- Formulário -->
             <VBox spacing="15" alignment="CENTER" styleClass="form-container">
@@ -47,6 +44,7 @@
                     <Text text="Email" styleClass="field-label"/>
                     <TextField fx:id="emailField" 
                               styleClass="modern-field"/>
+                    <Text fx:id="emailValidationText" styleClass="error-label" visible="false" wrappingWidth="260"/>
                 </VBox>
 
                 <!-- Departamento -->
@@ -62,6 +60,7 @@
                     <Text text="Senha" styleClass="field-label"/>
                     <PasswordField fx:id="senhaField" 
                                   styleClass="modern-field"/>
+                    <VBox fx:id="senhaCriteriaBox" spacing="2"/>
                 </VBox>
 
                 <!-- Confirmar Senha -->
@@ -69,6 +68,7 @@
                     <Text text="Confirmar Senha" styleClass="field-label"/>
                     <PasswordField fx:id="confirmarSenhaField" 
                                   styleClass="modern-field"/>
+                    <Text fx:id="confirmarSenhaValidationText" styleClass="error-label" visible="false" wrappingWidth="260"/>
                 </VBox>
 
                 <!-- Botão de Cadastro -->
@@ -80,6 +80,18 @@
                 <Hyperlink text="Já tem uma conta? Faça login"
                            onAction="#handleVoltar"
                            styleClass="modern-link"/>
+
+                <!-- LGPD -->
+                <VBox spacing="6" alignment="CENTER" maxWidth="260">
+                    <CheckBox fx:id="lgpdCheckbox"
+                              text="Li e aceito os termos de uso e política de privacidade"
+                              styleClass="modern-checkbox"
+                              wrapText="true"/>
+
+                    <Hyperlink text="Ver Política de Privacidade"
+                               onAction="#handlePoliticaPrivacidade"
+                               styleClass="modern-link"/>
+                </VBox>
             </VBox>
 
             <!-- Mensagem de Erro -->
@@ -87,18 +99,6 @@
                   styleClass="error-text"
                   visible="false"
                   wrappingWidth="280"/>
-
-            <!-- LGPD -->
-            <VBox spacing="10" alignment="CENTER" maxWidth="280">
-                <CheckBox fx:id="lgpdCheckbox"
-                          text="Li e aceito os termos de uso e política de privacidade"
-                          styleClass="modern-checkbox"
-                          wrapText="true"/>
-
-                <Hyperlink text="Ver Política de Privacidade"
-                           onAction="#handlePoliticaPrivacidade"
-                           styleClass="modern-link"/>
-            </VBox>
         </VBox>
     </VBox>
 </StackPane> 

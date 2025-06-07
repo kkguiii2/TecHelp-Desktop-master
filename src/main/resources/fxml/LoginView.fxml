@@ -47,14 +47,40 @@
                 <!-- Senha -->
                 <VBox spacing="5">
                     <Text text="Senha" styleClass="field-label"/>
-                    <PasswordField fx:id="senhaField" 
-                                  styleClass="modern-field"/>
+                    <StackPane>
+                        <PasswordField fx:id="senhaField" 
+                                     styleClass="modern-field"/>
+                        <TextField fx:id="senhaVisivelField"
+                                 styleClass="modern-field"
+                                 visible="false"
+                                 managed="false"/>
+                    </StackPane>
+                    <HBox alignment="CENTER_RIGHT" prefWidth="Infinity">
+                        <Region fx:id="spacer" HBox.hgrow="ALWAYS" />
+                        <Button fx:id="toggleSenhaButton"
+                                text="Exibir"
+                                styleClass="icon-button"
+                                onAction="#handleToggleSenha"/>
+                    </HBox>
                 </VBox>
 
+                <!-- Lembrar-me -->
+                <HBox alignment="CENTER_LEFT">
+                    <CheckBox fx:id="lembrarCheckbox" text="Lembrar-me" />
+                </HBox>
+
                 <!-- Botão de Login -->
-                <Button text="ENTRAR" 
-                        onAction="#handleLogin"
-                        styleClass="modern-button"/>
+                <StackPane>
+                    <Button fx:id="loginButton" 
+                            text="ENTRAR" 
+                            onAction="#handleLogin"
+                            styleClass="modern-button"/>
+                    <ProgressIndicator fx:id="loginSpinner"
+                                     visible="false"
+                                     maxWidth="20"
+                                     maxHeight="20"
+                                     styleClass="login-spinner"/>
+                </StackPane>
 
                 <!-- Link para Cadastro -->
                 <Hyperlink text="Não tem uma conta? Cadastre-se"
