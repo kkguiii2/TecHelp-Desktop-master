@@ -56,12 +56,8 @@ public class ChamadoDTO {
         usuario.setId(entityUsuario.getId());
         usuario.setNome(entityUsuario.getNome());
         usuario.setEmail(entityUsuario.getEmail());
-        usuario.setTelefone(entityUsuario.getTelefone());
         usuario.setTipo(TipoUsuario.valueOf(entityUsuario.getTipo().name()));
-        usuario.setLgpdAceite(entityUsuario.isLgpdAceite());
-        usuario.setDataCriacao(entityUsuario.getDataCriacao());
-        usuario.setDataAceiteLgpd(entityUsuario.getDataAceiteLgpd());
-        usuario.setUltimoAcesso(entityUsuario.getUltimoAcesso());
+        usuario.setDepartamento(entityUsuario.getDepartamento());
         return usuario;
     }
 
@@ -71,12 +67,8 @@ public class ChamadoDTO {
         entityUsuario.setId(usuario.getId());
         entityUsuario.setNome(usuario.getNome());
         entityUsuario.setEmail(usuario.getEmail());
-        entityUsuario.setTelefone(usuario.getTelefone());
         entityUsuario.setTipo(com.techelp.model.entity.Usuario.TipoUsuario.valueOf(usuario.getTipo().name()));
-        entityUsuario.setLgpdAceite(usuario.isLgpdAceite());
-        entityUsuario.setDataCriacao(usuario.getDataCriacao());
-        entityUsuario.setDataAceiteLgpd(usuario.getDataAceiteLgpd());
-        entityUsuario.setUltimoAcesso(usuario.getUltimoAcesso());
+        entityUsuario.setDepartamento(usuario.getDepartamento());
         return entityUsuario;
     }
     
@@ -104,5 +96,25 @@ public class ChamadoDTO {
     public long getTempoDecorrido() {
         LocalDateTime fim = dataFechamento != null ? dataFechamento : LocalDateTime.now();
         return ChronoUnit.HOURS.between(dataAbertura, fim);
+    }
+
+    private static UsuarioDTO mapUsuarioToDTO(Usuario entityUsuario) {
+        UsuarioDTO usuario = new UsuarioDTO();
+        usuario.setId(entityUsuario.getId());
+        usuario.setNome(entityUsuario.getNome());
+        usuario.setEmail(entityUsuario.getEmail());
+        usuario.setTipo(entityUsuario.getTipo());
+        usuario.setDepartamento(entityUsuario.getDepartamento());
+        return usuario;
+    }
+
+    private static Usuario mapDTOToUsuario(UsuarioDTO usuario) {
+        Usuario entityUsuario = new Usuario();
+        entityUsuario.setId(usuario.getId());
+        entityUsuario.setNome(usuario.getNome());
+        entityUsuario.setEmail(usuario.getEmail());
+        entityUsuario.setTipo(usuario.getTipo());
+        entityUsuario.setDepartamento(usuario.getDepartamento());
+        return entityUsuario;
     }
 } 

@@ -18,6 +18,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import com.techelp.service.GeminiService;
+import com.techelp.cache.CacheManager;
 
 public class ChamadoService {
     
@@ -26,6 +27,7 @@ public class ChamadoService {
     private final UsuarioRepository usuarioRepository;
     private final GeminiService geminiService;
     private final NotificacaoService notificacaoService;
+    private final CacheManager cacheManager;
     
     public ChamadoService() {
         this.chamadoRepository = new ChamadoRepository();
@@ -33,6 +35,7 @@ public class ChamadoService {
         this.usuarioRepository = new UsuarioRepository();
         this.geminiService = AppConfig.getGeminiService();
         this.notificacaoService = new NotificacaoService();
+        this.cacheManager = CacheManager.getInstance();
     }
     
     public ChamadoDTO abrirChamado(String titulo, String descricao, Usuario solicitante) {
@@ -320,8 +323,9 @@ public class ChamadoService {
     }
     
     public Chamado buscarChamado(Long id) {
-        return chamadoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Chamado não encontrado"));
+        return cacheManager.getChamadoCache().get(id, key -> {
+            return chamadoRepository.findById(id).orElse(null);
+        });
     }
 
     private void ajustarPrioridadeAutomatica(Chamado chamado) {
@@ -384,5 +388,14 @@ public class ChamadoService {
         
         // Depois exclui o chamado
         chamadoRepository.delete(chamadoId);
+        cacheManager.getChamadoCache().invalidate(chamadoId);
+    }
+    
+    public void limparCache() {
+        cacheManager.getChamadoCache().invalidateAll();
+    }
+    
+    public int countByPeriodo(LocalDateTime inicio, LocalDateTime fim) {
+        return chamadoRepository.countByPeriodo(inicio, fim);
     }
 } 

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
+
+<HBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.techelp.controller.StatusBarController"
+      styleClass="status-bar"
+      spacing="10">
+    <padding>
+        <Insets top="5" right="5" bottom="5" left="5"/>
+    </padding>
+    <Label fx:id="statusLabel" 
+           text="Status: Aguardando conexão com SQL Server..."
+           style="-fx-font-size: 12px;"/>
+    <Region HBox.hgrow="ALWAYS"/>
+</HBox> 

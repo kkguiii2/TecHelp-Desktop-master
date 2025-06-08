@@ -29,9 +29,6 @@ public class UsuarioFormController extends BaseController implements DadosAware 
     private PasswordField confirmaSenhaField;
     
     @FXML
-    private TextField telefoneField;
-    
-    @FXML
     private ComboBox<Usuario.TipoUsuario> tipoUsuarioCombo;
     
     @FXML
@@ -62,7 +59,6 @@ public class UsuarioFormController extends BaseController implements DadosAware 
         if (usuarioEdicao != null) {
             nomeField.setText(usuarioEdicao.getNome());
             emailField.setText(usuarioEdicao.getEmail());
-            telefoneField.setText(usuarioEdicao.getTelefone());
             tipoUsuarioCombo.setValue(usuarioEdicao.getTipo());
             
             // Em modo de edição, os campos de senha são opcionais
@@ -75,7 +71,7 @@ public class UsuarioFormController extends BaseController implements DadosAware 
     private void handleSalvar() {
         try {
             // Validação dos campos
-            if (nomeField.getText().isEmpty() || emailField.getText().isEmpty() || telefoneField.getText().isEmpty() || tipoUsuarioCombo.getValue() == null) {
+            if (nomeField.getText().isEmpty() || emailField.getText().isEmpty() || tipoUsuarioCombo.getValue() == null) {
                 mensagemLabel.setText("Preencha todos os campos obrigatórios");
                 return;
             }
@@ -94,27 +90,20 @@ public class UsuarioFormController extends BaseController implements DadosAware 
             Usuario usuario = usuarioEdicao != null ? usuarioEdicao : new Usuario();
             usuario.setNome(nomeField.getText());
             usuario.setEmail(emailField.getText());
-            usuario.setTelefone(telefoneField.getText());
             usuario.setTipo(tipoUsuarioCombo.getValue());
             
             if (!senhaField.getText().isEmpty()) {
                 usuario.setSenha(senhaField.getText());
             }
             
-            if (usuarioEdicao == null) {
-                usuarioService.salvar(usuario);
-                mensagemLabel.setText("Usuário cadastrado com sucesso!");
-            } else {
-                usuarioService.atualizar(usuario);
-                mensagemLabel.setText("Usuário atualizado com sucesso!");
-            }
-            
+            usuarioService.salvar(usuario);
+            mostrarSucesso("Usuário salvo com sucesso!");
             carregarTela("/fxml/UsuariosView.fxml");
             
         } catch (Exception e) {
             System.err.println("Erro ao salvar usuário: " + e.getMessage());
             e.printStackTrace();
-            mensagemLabel.setText("Erro ao salvar usuário: " + e.getMessage());
+            mostrarErro("Erro ao salvar usuário: " + e.getMessage());
         }
     }
     
@@ -123,9 +112,9 @@ public class UsuarioFormController extends BaseController implements DadosAware 
         try {
             carregarTela("/fxml/UsuariosView.fxml");
         } catch (Exception e) {
-            System.err.println("Erro ao voltar: " + e.getMessage());
+            System.err.println("Erro ao cancelar: " + e.getMessage());
             e.printStackTrace();
-            mensagemLabel.setText("Erro ao voltar: " + e.getMessage());
+            mostrarErro("Erro ao cancelar: " + e.getMessage());
         }
     }
 } 

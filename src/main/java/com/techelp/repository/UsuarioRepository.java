@@ -8,8 +8,24 @@ import java.util.Optional;
 
 public class UsuarioRepository extends BaseRepository {
     
+    private static final String INSERT_USUARIO = 
+        "INSERT INTO usuarios (name_user, email, password, type_user, dept, data_criacao) " +
+        "VALUES (?, ?, ?, ?, ?, ?)";
+    
+    private static final String SELECT_USUARIO_BY_ID = 
+        "SELECT id_user, name_user, email, password, type_user, dept, data_criacao " +
+        "FROM usuarios WHERE id_user = ?";
+    
+    private static final String SELECT_USUARIO_BY_EMAIL = 
+        "SELECT id_user, name_user, email, password, type_user, dept, data_criacao " +
+        "FROM usuarios WHERE email = ?";
+    
+    private static final String UPDATE_USUARIO = 
+        "UPDATE usuarios SET name_user = ?, email = ?, password = ?, type_user = ?, dept = ? " +
+        "WHERE id_user = ?";
+    
     public Usuario findById(Long id) {
-        String sql = "SELECT * FROM [dbo].[usuarios] WHERE id = ?";
+        String sql = SELECT_USUARIO_BY_ID;
         
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -29,40 +45,27 @@ public class UsuarioRepository extends BaseRepository {
     }
     
     public Usuario findByEmail(String email) {
-        String sql = "SELECT * FROM [dbo].[usuarios] WHERE email = ?";
-        System.out.println("Buscando usuário por email: " + email);
-        System.out.println("SQL: " + sql);
+        String sql = SELECT_USUARIO_BY_EMAIL;
         
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             
             stmt.setString(1, email);
-            System.out.println("Executando consulta...");
             
             try (ResultSet rs = stmt.executeQuery()) {
-                System.out.println("Consulta executada!");
                 if (rs.next()) {
-                    System.out.println("Usuário encontrado!");
                     return mapResultSetToUsuario(rs);
                 }
-                System.out.println("Usuário não encontrado!");
                 return null;
             }
             
         } catch (Exception e) {
-            System.err.println("Erro ao buscar usuário: " + e.getMessage());
-            e.printStackTrace();
             throw new RuntimeException("Erro ao buscar usuário: " + e.getMessage(), e);
         }
     }
     
     public Usuario save(Usuario usuario) {
-        String sql = """
-            INSERT INTO [dbo].[usuarios] (
-                nome, email, senha, telefone, tipo,
-                data_criacao, lgpd_aceite, data_aceite_lgpd
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        """;
+        String sql = usuario.getId() == null ? INSERT_USUARIO : UPDATE_USUARIO;
         
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -70,24 +73,28 @@ public class UsuarioRepository extends BaseRepository {
             stmt.setString(1, usuario.getNome());
             stmt.setString(2, usuario.getEmail());
             stmt.setString(3, usuario.getSenha());
-            stmt.setString(4, usuario.getTelefone());
-            stmt.setString(5, usuario.getTipo().name());
-            stmt.setTimestamp(6, Timestamp.valueOf(usuario.getDataCriacao()));
-            stmt.setBoolean(7, usuario.isLgpdAceite());
-            stmt.setTimestamp(8, usuario.getDataAceiteLgpd() != null ? 
-                Timestamp.valueOf(usuario.getDataAceiteLgpd()) : null);
+            stmt.setString(4, usuario.getTipo().name());
+            stmt.setString(5, usuario.getDepartamento());
+            
+            if (usuario.getId() == null) {
+                stmt.setTimestamp(6, Timestamp.valueOf(usuario.getDataCriacao()));
+            } else {
+                stmt.setLong(6, usuario.getId());
+            }
             
             int affectedRows = stmt.executeUpdate();
             
             if (affectedRows == 0) {
-                throw new RuntimeException("Falha ao criar usuário, nenhuma linha afetada.");
+                throw new RuntimeException("Falha ao salvar usuário, nenhuma linha afetada.");
             }
             
-            try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
-                if (generatedKeys.next()) {
-                    usuario.setId(generatedKeys.getLong(1));
-                } else {
-                    throw new RuntimeException("Falha ao criar usuário, ID não obtido.");
+            if (usuario.getId() == null) {
+                try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
+                    if (generatedKeys.next()) {
+                        usuario.setId(generatedKeys.getLong(1));
+                    } else {
+                        throw new RuntimeException("Falha ao salvar usuário, ID não obtido.");
+                    }
                 }
             }
             
@@ -99,7 +106,7 @@ public class UsuarioRepository extends BaseRepository {
     }
     
     public List<Usuario> findAll() {
-        String sql = "SELECT * FROM [dbo].[usuarios]";
+        String sql = "SELECT id_user, name_user, email, password, type_user, dept, data_criacao FROM usuarios";
         List<Usuario> usuarios = new ArrayList<>();
         
         try (Connection conn = getConnection();
@@ -118,7 +125,7 @@ public class UsuarioRepository extends BaseRepository {
     }
     
     public void delete(Long id) {
-        String sql = "DELETE FROM [dbo].[usuarios] WHERE id = ?";
+        String sql = "DELETE FROM usuarios WHERE id_user = ?";
         
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -130,7 +137,7 @@ public class UsuarioRepository extends BaseRepository {
     }
     
     public List<Usuario> findByTipo(Usuario.TipoUsuario tipo) {
-        String sql = "SELECT * FROM [dbo].[usuarios] WHERE tipo = ?";
+        String sql = "SELECT id_user, name_user, email, password, type_user, dept, data_criacao FROM usuarios WHERE type_user = ?";
         List<Usuario> usuarios = new ArrayList<>();
         
         try (Connection conn = getConnection();
@@ -153,20 +160,13 @@ public class UsuarioRepository extends BaseRepository {
     
     private Usuario mapResultSetToUsuario(ResultSet rs) throws SQLException {
         Usuario usuario = new Usuario();
-        usuario.setId(rs.getLong("id"));
-        usuario.setNome(rs.getString("nome"));
+        usuario.setId(rs.getLong("id_user"));
+        usuario.setNome(rs.getString("name_user"));
         usuario.setEmail(rs.getString("email"));
-        usuario.setSenha(rs.getString("senha"));
-        usuario.setTelefone(rs.getString("telefone"));
-        usuario.setTipo(Usuario.TipoUsuario.valueOf(rs.getString("tipo")));
+        usuario.setSenha(rs.getString("password"));
+        usuario.setTipo(Usuario.TipoUsuario.valueOf(rs.getString("type_user")));
+        usuario.setDepartamento(rs.getString("dept"));
         usuario.setDataCriacao(rs.getTimestamp("data_criacao").toLocalDateTime());
-        usuario.setLgpdAceite(rs.getBoolean("lgpd_aceite"));
-        
-        Timestamp dataAceiteLgpd = rs.getTimestamp("data_aceite_lgpd");
-        if (dataAceiteLgpd != null) {
-            usuario.setDataAceiteLgpd(dataAceiteLgpd.toLocalDateTime());
-        }
-        
         return usuario;
     }
 } 

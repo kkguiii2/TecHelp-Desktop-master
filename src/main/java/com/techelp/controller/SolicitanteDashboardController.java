@@ -1,25 +1,29 @@
 package com.techelp.controller;
 
+import com.techelp.model.dto.ChamadoDTO;
 import com.techelp.model.entity.Chamado;
 import com.techelp.model.entity.Usuario;
-import com.techelp.model.dto.ChamadoDTO;
 import com.techelp.service.ChamadoService;
 import com.techelp.service.AuthService;
 import javafx.fxml.FXML;
+import javafx.scene.control.*;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.scene.Scene;
 import javafx.scene.chart.PieChart;
-import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.layout.HBox;
 import javafx.scene.text.Text;
-import javafx.beans.property.SimpleStringProperty;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class SolicitanteDashboardController extends BaseController {
     
@@ -150,39 +154,7 @@ public class SolicitanteDashboardController extends BaseController {
             return new SimpleStringProperty(horas + "h");
         });
         
-        acoesColumn.setCellFactory(column -> new TableCell<ChamadoDTO, Void>() {
-            private final Button verButton = new Button("Ver");
-            private final Button avaliarButton = new Button("Avaliar");
-            private final HBox box = new HBox(5, verButton, avaliarButton);
-            
-            {
-                verButton.setOnAction(event -> {
-                    ChamadoDTO chamado = getTableView().getItems().get(getIndex());
-                    verChamado(chamado);
-                });
-                
-                avaliarButton.setOnAction(event -> {
-                    ChamadoDTO chamado = getTableView().getItems().get(getIndex());
-                    avaliarChamado(chamado);
-                });
-                
-                verButton.getStyleClass().add("secondary-button");
-                avaliarButton.getStyleClass().add("primary-button");
-            }
-            
-            @Override
-            protected void updateItem(Void item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty) {
-                    setGraphic(null);
-                } else {
-                    ChamadoDTO chamado = getTableView().getItems().get(getIndex());
-                    avaliarButton.setVisible(chamado.getStatus() == Chamado.StatusChamado.FECHADO && 
-                        chamado.getAvaliacao() == null);
-                    setGraphic(box);
-                }
-            }
-        });
+        configurarColunaAcoes();
     }
     
     private void configurarFiltros() {
@@ -271,18 +243,61 @@ public class SolicitanteDashboardController extends BaseController {
     private void avaliarChamado(ChamadoDTO chamado) {
         Dialog<Integer> dialog = new Dialog<>();
         dialog.setTitle("Avaliar Chamado");
-        dialog.setHeaderText("Avalie o atendimento de 1 a 5");
+        dialog.setHeaderText("Como foi seu atendimento?");
         
-        ComboBox<Integer> notaCombo = new ComboBox<>(
-            FXCollections.observableArrayList(1, 2, 3, 4, 5)
-        );
+        // Container para as opções de avaliação
+        VBox content = new VBox(10);
+        content.setStyle("-fx-padding: 10;");
         
-        dialog.getDialogPane().setContent(notaCombo);
-        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+        // Criar botões de avaliação
+        HBox ratingBox = new HBox(10);
+        ratingBox.setStyle("-fx-alignment: center;");
+        
+        SimpleIntegerProperty selectedRating = new SimpleIntegerProperty(0);
+        List<Button> ratingButtons = new ArrayList<>();
+        
+        for (int i = 1; i <= 5; i++) {
+            Button ratingButton = new Button(String.valueOf(i));
+            final int rating = i;
+            
+            ratingButton.getStyleClass().add("rating-button");
+            ratingButton.setOnAction(e -> {
+                selectedRating.set(rating);
+                // Atualizar estilo dos botões
+                for (int j = 0; j < ratingButtons.size(); j++) {
+                    Button btn = ratingButtons.get(j);
+                    if (j < rating) {
+                        btn.getStyleClass().add("selected");
+                    } else {
+                        btn.getStyleClass().remove("selected");
+                    }
+                }
+            });
+            
+            ratingButtons.add(ratingButton);
+            ratingBox.getChildren().add(ratingButton);
+        }
+        
+        content.getChildren().add(ratingBox);
+        dialog.getDialogPane().setContent(content);
+        
+        // Botões de confirmação
+        ButtonType confirmButtonType = new ButtonType("Confirmar", ButtonBar.ButtonData.OK_DONE);
+        ButtonType cancelButtonType = new ButtonType("Cancelar", ButtonBar.ButtonData.CANCEL_CLOSE);
+        dialog.getDialogPane().getButtonTypes().addAll(confirmButtonType, cancelButtonType);
+        
+        // Desabilitar o botão de confirmar até uma avaliação ser selecionada
+        Button confirmButton = (Button) dialog.getDialogPane().lookupButton(confirmButtonType);
+        confirmButton.setDisable(true);
+        
+        // Habilitar o botão quando uma avaliação for selecionada
+        selectedRating.addListener((obs, oldVal, newVal) -> {
+            confirmButton.setDisable(newVal.intValue() == 0);
+        });
         
         dialog.setResultConverter(buttonType -> {
-            if (buttonType == ButtonType.OK) {
-                return notaCombo.getValue();
+            if (buttonType == confirmButtonType) {
+                return selectedRating.get();
             }
             return null;
         });
@@ -294,6 +309,42 @@ public class SolicitanteDashboardController extends BaseController {
                 mostrarSucesso("Avaliação registrada com sucesso!");
             } catch (Exception e) {
                 mostrarErro("Erro ao registrar avaliação: " + e.getMessage());
+            }
+        });
+    }
+    
+    private void configurarColunaAcoes() {
+        acoesColumn.setCellFactory(column -> new TableCell<ChamadoDTO, Void>() {
+            private final Button verButton = new Button("Ver");
+            private final Button avaliarButton = new Button("Avaliar");
+            private final HBox box = new HBox(5, verButton, avaliarButton);
+            
+            {
+                verButton.setOnAction(event -> {
+                    ChamadoDTO chamado = getTableView().getItems().get(getIndex());
+                    verChamado(chamado);
+                });
+                
+                avaliarButton.setOnAction(event -> {
+                    ChamadoDTO chamado = getTableView().getItems().get(getIndex());
+                    avaliarChamado(chamado);
+                });
+                
+                verButton.getStyleClass().add("action-button");
+                avaliarButton.getStyleClass().addAll("action-button", "rate");
+            }
+            
+            @Override
+            protected void updateItem(Void item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty) {
+                    setGraphic(null);
+                } else {
+                    ChamadoDTO chamado = getTableView().getItems().get(getIndex());
+                    avaliarButton.setVisible(chamado.getStatus() == Chamado.StatusChamado.FECHADO && 
+                        chamado.getAvaliacao() == null);
+                    setGraphic(box);
+                }
             }
         });
     }

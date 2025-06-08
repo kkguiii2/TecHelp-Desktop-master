@@ -28,7 +28,6 @@ public class AuthService {
         
         if (usuario == null) {
             System.out.println("Usuário não encontrado: " + email);
-            mostrarAlerta("Erro de Autenticação", "Email ou senha inválidos.");
             return null;
         }
         
@@ -42,7 +41,6 @@ public class AuthService {
             return usuario;
         } else {
             System.out.println("Senha inválida para o usuário: " + email);
-            mostrarAlerta("Erro de Autenticação", "Email ou senha inválidos.");
             return null;
         }
     }
@@ -50,18 +48,9 @@ public class AuthService {
     public boolean emailJaExiste(String email) {
         Usuario usuario = usuarioRepository.findByEmail(email);
         if (usuario != null) {
-            mostrarAlerta("Erro de Cadastro", "Este email já está cadastrado no sistema.");
             return true;
         }
         return false;
-    }
-    
-    private void mostrarAlerta(String titulo, String mensagem) {
-        Alert alert = new Alert(AlertType.ERROR);
-        alert.setTitle(titulo);
-        alert.setHeaderText(null);
-        alert.setContentText(mensagem);
-        alert.showAndWait();
     }
     
     public Usuario getUsuarioLogado() {

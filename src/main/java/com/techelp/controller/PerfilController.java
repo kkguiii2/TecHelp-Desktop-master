@@ -7,6 +7,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Label;
+import javafx.application.Platform;
 
 public class PerfilController extends BaseController {
     
@@ -19,9 +20,6 @@ public class PerfilController extends BaseController {
     
     @FXML
     private TextField emailField;
-    
-    @FXML
-    private TextField telefoneField;
     
     @FXML
     private PasswordField senhaAtualField;
@@ -68,7 +66,6 @@ public class PerfilController extends BaseController {
     private void carregarDados() {
         nomeField.setText(usuarioLogado.getNome());
         emailField.setText(usuarioLogado.getEmail());
-        telefoneField.setText(usuarioLogado.getTelefone());
         tipoLabel.setText("Tipo: " + usuarioLogado.getTipo().name());
     }
     
@@ -76,7 +73,7 @@ public class PerfilController extends BaseController {
     private void handleSalvar() {
         try {
             // Validação dos campos
-            if (nomeField.getText().isEmpty() || emailField.getText().isEmpty() || telefoneField.getText().isEmpty()) {
+            if (nomeField.getText().isEmpty() || emailField.getText().isEmpty()) {
                 mensagemLabel.setText("Preencha todos os campos obrigatórios");
                 return;
             }
@@ -84,7 +81,6 @@ public class PerfilController extends BaseController {
             // Atualiza os dados do usuário
             usuarioLogado.setNome(nomeField.getText());
             usuarioLogado.setEmail(emailField.getText());
-            usuarioLogado.setTelefone(telefoneField.getText());
             
             // Se foi informada nova senha
             if (!novaSenhaField.getText().isEmpty()) {
@@ -115,21 +111,22 @@ public class PerfilController extends BaseController {
             mostrarErro("Erro ao salvar perfil: " + e.getMessage());
         }
     }
-    
+
     @FXML
     private void handleVoltar() {
-        try {
-            String telaRetorno = switch (usuarioLogado.getTipo()) {
-                case TECNICO -> "/fxml/TecnicoDashboardView.fxml";
-                case SOLICITANTE -> "/fxml/SolicitanteDashboardView.fxml";
-                case ADMIN -> "/fxml/AdminDashboardView.fxml";
-            };
-            
-            carregarTela(telaRetorno);
-        } catch (Exception e) {
-            System.err.println("Erro ao voltar: " + e.getMessage());
-            e.printStackTrace();
-            mostrarErro("Erro ao voltar: " + e.getMessage());
-        }
+        Platform.runLater(() -> {
+            try {
+                String telaRetorno = switch (usuarioLogado.getTipo()) {
+                    case TECNICO -> "/fxml/TecnicoDashboardView.fxml";
+                    case SOLICITANTE -> "/fxml/SolicitanteDashboardView.fxml";
+                    case ADMIN -> "/fxml/AdminDashboardView.fxml";
+                };
+                carregarTela(telaRetorno);
+            } catch (Exception e) {
+                System.err.println("Erro ao voltar: " + e.getMessage());
+                e.printStackTrace();
+                mostrarErro("Erro ao voltar: " + e.getMessage());
+            }
+        });
     }
 } 

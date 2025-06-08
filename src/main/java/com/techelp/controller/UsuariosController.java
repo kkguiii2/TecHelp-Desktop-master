@@ -2,6 +2,7 @@ package com.techelp.controller;
 
 import com.techelp.model.entity.Usuario;
 import com.techelp.service.UsuarioService;
+import com.techelp.service.AuthService;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -15,7 +16,7 @@ import java.util.List;
 public class UsuariosController extends BaseController {
     
     private final UsuarioService usuarioService;
-    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+    private final AuthService authService;
     
     @FXML
     private TableView<Usuario> usuariosTable;
@@ -33,13 +34,7 @@ public class UsuariosController extends BaseController {
     private TableColumn<Usuario, String> tipoColumn;
     
     @FXML
-    private TableColumn<Usuario, String> telefoneColumn;
-    
-    @FXML
     private TableColumn<Usuario, String> dataCriacaoColumn;
-    
-    @FXML
-    private TableColumn<Usuario, String> ultimoAcessoColumn;
     
     @FXML
     private TableColumn<Usuario, Void> acoesColumn;
@@ -52,6 +47,7 @@ public class UsuariosController extends BaseController {
     
     public UsuariosController() {
         this.usuarioService = new UsuarioService();
+        this.authService = AuthService.getInstance();
     }
     
     @FXML
@@ -75,145 +71,126 @@ public class UsuariosController extends BaseController {
         nomeColumn.setCellValueFactory(new PropertyValueFactory<>("nome"));
         emailColumn.setCellValueFactory(new PropertyValueFactory<>("email"));
         tipoColumn.setCellValueFactory(new PropertyValueFactory<>("tipo"));
-        telefoneColumn.setCellValueFactory(new PropertyValueFactory<>("telefone"));
         
         dataCriacaoColumn.setCellValueFactory(cellData -> 
             new SimpleStringProperty(
                 cellData.getValue().getDataCriacao() != null ? 
-                DATE_FORMATTER.format(cellData.getValue().getDataCriacao()) : ""));
+                cellData.getValue().getDataCriacao().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")) : ""));
                 
-        ultimoAcessoColumn.setCellValueFactory(cellData -> 
-            new SimpleStringProperty(
-                cellData.getValue().getUltimoAcesso() != null ? 
-                DATE_FORMATTER.format(cellData.getValue().getUltimoAcesso()) : ""));
-        
         configurarColunaAcoes();
-    }
-    
-    private void configurarColunaAcoes() {
-        acoesColumn.setCellFactory(col -> new TableCell<Usuario, Void>() {
-            private final Button editarButton = new Button("Editar");
-            private final Button excluirButton = new Button("Excluir");
-            private final HBox container = new HBox(5);
-            
-            {
-                editarButton.getStyleClass().addAll("action-button", "edit");
-                excluirButton.getStyleClass().addAll("action-button", "delete");
-                
-                container.getChildren().addAll(editarButton, excluirButton);
-                container.setAlignment(javafx.geometry.Pos.CENTER);
-                
-                editarButton.setOnAction(event -> {
-                    Usuario usuario = getTableView().getItems().get(getIndex());
-                    editarUsuario(usuario);
-                });
-                
-                excluirButton.setOnAction(event -> {
-                    Usuario usuario = getTableView().getItems().get(getIndex());
-                    excluirUsuario(usuario);
-                });
-            }
-            
-            @Override
-            protected void updateItem(Void item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty) {
-                    setGraphic(null);
-                } else {
-                    setGraphic(container);
-                }
-            }
-        });
     }
     
     private void configurarFiltros() {
         filtroTipoCombo.setItems(FXCollections.observableArrayList(Usuario.TipoUsuario.values()));
-        
-        pesquisaField.textProperty().addListener((obs, oldVal, newVal) -> aplicarFiltros());
         filtroTipoCombo.valueProperty().addListener((obs, oldVal, newVal) -> aplicarFiltros());
-    }
-    
-    private void aplicarFiltros() {
-        try {
-            String termoPesquisa = pesquisaField.getText().toLowerCase();
-            Usuario.TipoUsuario tipoFiltro = filtroTipoCombo.getValue();
-            
-            List<Usuario> usuarios = usuarioService.listarTodos();
-            
-            List<Usuario> usuariosFiltrados = usuarios.stream()
-                .filter(u -> tipoFiltro == null || u.getTipo() == tipoFiltro)
-                .filter(u -> termoPesquisa.isEmpty() || 
-                           u.getNome().toLowerCase().contains(termoPesquisa) ||
-                           u.getEmail().toLowerCase().contains(termoPesquisa))
-                .toList();
-            
-            usuariosTable.setItems(FXCollections.observableArrayList(usuariosFiltrados));
-            
-        } catch (Exception e) {
-            System.err.println("Erro ao aplicar filtros: " + e.getMessage());
-            e.printStackTrace();
-            mostrarErro("Erro ao filtrar usuários: " + e.getMessage());
-        }
+        pesquisaField.textProperty().addListener((obs, oldVal, newVal) -> aplicarFiltros());
     }
     
     private void atualizarTabela() {
         try {
-            List<Usuario> usuarios = usuarioService.listarTodos();
-            usuariosTable.setItems(FXCollections.observableArrayList(usuarios));
+            List<Usuario> usuarios = usuarioService.findAll();
+            ObservableList<Usuario> observableUsuarios = FXCollections.observableArrayList(usuarios);
+            usuariosTable.setItems(observableUsuarios);
         } catch (Exception e) {
-            System.err.println("Erro ao atualizar tabela: " + e.getMessage());
+            System.err.println("Erro ao carregar usuários: " + e.getMessage());
             e.printStackTrace();
             mostrarErro("Erro ao carregar usuários: " + e.getMessage());
         }
     }
     
+    private void aplicarFiltros() {
+        try {
+            String pesquisa = pesquisaField.getText().toLowerCase();
+            Usuario.TipoUsuario tipo = filtroTipoCombo.getValue();
+            
+            List<Usuario> usuarios = usuarioService.findAll();
+            
+            List<Usuario> usuariosFiltrados = usuarios.stream()
+                .filter(u -> (tipo == null || u.getTipo() == tipo) &&
+                            (pesquisa.isEmpty() || 
+                             u.getNome().toLowerCase().contains(pesquisa) ||
+                             u.getEmail().toLowerCase().contains(pesquisa)))
+                .toList();
+            
+            usuariosTable.setItems(FXCollections.observableArrayList(usuariosFiltrados));
+        } catch (Exception e) {
+            System.err.println("Erro ao aplicar filtros: " + e.getMessage());
+            e.printStackTrace();
+            mostrarErro("Erro ao aplicar filtros: " + e.getMessage());
+        }
+    }
+    
+    private void configurarColunaAcoes() {
+        acoesColumn.setCellFactory(param -> new TableCell<Usuario, Void>() {
+            private final Button editarButton = new Button("Editar");
+            private final Button excluirButton = new Button("Excluir");
+            
+            {
+                editarButton.getStyleClass().add("edit-button");
+                excluirButton.getStyleClass().add("delete-button");
+                
+                editarButton.setOnAction(event -> {
+                    Usuario usuario = getTableView().getItems().get(getIndex());
+                    try {
+                        carregarTela("/fxml/UsuarioForm.fxml", usuario);
+                    } catch (Exception e) {
+                        UsuariosController.this.mostrarErro("Erro ao editar usuário: " + e.getMessage());
+                    }
+                });
+                
+                excluirButton.setOnAction(event -> {
+                    Usuario usuario = getTableView().getItems().get(getIndex());
+                    if (UsuariosController.this.confirmarAcao("Excluir Usuário", "Tem certeza que deseja excluir o usuário " + usuario.getNome() + "?")) {
+                        try {
+                            usuarioService.excluir(usuario.getId());
+                            atualizarTabela();
+                            UsuariosController.this.mostrarSucesso("Usuário excluído com sucesso!");
+                        } catch (Exception e) {
+                            UsuariosController.this.mostrarErro("Erro ao excluir usuário: " + e.getMessage());
+                        }
+                    }
+                });
+            }
+
+            @Override
+            public void updateItem(Void item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty) {
+                    setGraphic(null);
+                } else {
+                    setGraphic(new HBox(10, editarButton, excluirButton));
+                }
+            }
+        });
+    }
+
     @FXML
     private void handleNovoUsuario() {
         try {
-            carregarTela("fxml/UsuarioForm.fxml");
+            carregarTela("/fxml/UsuarioForm.fxml");
         } catch (Exception e) {
-            System.err.println("Erro ao abrir formulário: " + e.getMessage());
-            e.printStackTrace();
-            mostrarErro("Erro ao abrir formulário de usuário: " + e.getMessage());
+            mostrarErro("Erro ao abrir formulário de novo usuário: " + e.getMessage());
         }
     }
-    
-    private void editarUsuario(Usuario usuario) {
-        try {
-            carregarTela("fxml/UsuarioForm.fxml", usuario);
-        } catch (Exception e) {
-            System.err.println("Erro ao editar usuário: " + e.getMessage());
-            e.printStackTrace();
-            mostrarErro("Erro ao abrir formulário de edição: " + e.getMessage());
-        }
-    }
-    
-    private void excluirUsuario(Usuario usuario) {
-        try {
-            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-            alert.setTitle("Confirmar Exclusão");
-            alert.setHeaderText("Excluir Usuário");
-            alert.setContentText("Tem certeza que deseja excluir o usuário " + usuario.getNome() + "?");
-            
-            if (alert.showAndWait().orElse(null) == ButtonType.OK) {
-                usuarioService.excluirUsuario(usuario.getId());
-                atualizarTabela();
-            }
-        } catch (Exception e) {
-            System.err.println("Erro ao excluir usuário: " + e.getMessage());
-            e.printStackTrace();
-            mostrarErro("Erro ao excluir usuário: " + e.getMessage());
-        }
-    }
-    
+
     @FXML
     private void handleVoltar() {
         try {
-            carregarTela("/fxml/AdminDashboardView.fxml");
+            Usuario usuarioLogado = authService.getUsuarioLogado();
+            if (usuarioLogado == null) {
+                carregarTela("/fxml/LoginView.fxml");
+                return;
+            }
+
+            String fxmlPath = switch (usuarioLogado.getTipo()) {
+                case TECNICO -> "/fxml/TecnicoDashboardView.fxml";
+                case SOLICITANTE -> "/fxml/SolicitanteDashboardView.fxml";
+                case ADMIN -> "/fxml/AdminDashboardView.fxml";
+            };
+
+            carregarTela(fxmlPath);
         } catch (Exception e) {
-            System.err.println("Erro ao voltar: " + e.getMessage());
-            e.printStackTrace();
-            mostrarErro("Erro ao voltar para dashboard: " + e.getMessage());
+            mostrarErro("Erro ao voltar para a tela principal: " + e.getMessage());
         }
     }
 } 

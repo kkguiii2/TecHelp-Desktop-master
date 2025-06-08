@@ -2,6 +2,7 @@ package com.techelp.controller;
 
 import com.techelp.model.entity.Usuario;
 import com.techelp.service.AuthService;
+import com.techelp.util.LocalCredentialsManager;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -12,18 +13,15 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.CheckBox;
 import javafx.stage.Stage;
+import javafx.stage.Modality;
 import java.net.URL;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
-import java.util.prefs.Preferences;
 
 public class LoginController extends BaseController {
     
     private final AuthService authService;
-    private static final String PREF_EMAIL = "email";
-    private static final String PREF_SENHA = "senha";
-    private static final String PREF_LEMBRAR = "lembrar";
-    private final Preferences prefs;
+    private final LocalCredentialsManager credentialsManager;
     private boolean senhaVisivel = false;
     
     @FXML
@@ -49,7 +47,7 @@ public class LoginController extends BaseController {
     
     public LoginController() {
         this.authService = AuthService.getInstance();
-        this.prefs = Preferences.userNodeForPackage(LoginController.class);
+        this.credentialsManager = LocalCredentialsManager.getInstance();
     }
     
     @FXML
@@ -103,10 +101,9 @@ public class LoginController extends BaseController {
     }
     
     private void carregarCredenciaisSalvas() {
-        boolean lembrar = prefs.getBoolean(PREF_LEMBRAR, false);
-        if (lembrar) {
-            String email = prefs.get(PREF_EMAIL, "");
-            String senha = prefs.get(PREF_SENHA, "");
+        if (credentialsManager.isLembrar()) {
+            String email = credentialsManager.getEmail();
+            String senha = credentialsManager.getSenha();
             
             if (!email.isEmpty() && !senha.isEmpty()) {
                 emailField.setText(email);
@@ -118,44 +115,32 @@ public class LoginController extends BaseController {
     }
     
     private void salvarCredenciais(String email, String senha) {
-        if (lembrarCheckbox.isSelected()) {
-            prefs.put(PREF_EMAIL, email);
-            prefs.put(PREF_SENHA, senha);
-            prefs.putBoolean(PREF_LEMBRAR, true);
-        } else {
-            // Se a opção "Lembrar-me" estiver desmarcada, remove as credenciais salvas
-            prefs.remove(PREF_EMAIL);
-            prefs.remove(PREF_SENHA);
-            prefs.putBoolean(PREF_LEMBRAR, false);
-        }
+        credentialsManager.saveCredentials(email, senha, lembrarCheckbox.isSelected());
     }
     
     @FXML
     private void handleLogin() {
-        System.out.println("Tentando realizar login");
         String email = emailField.getText();
-        String senha = senhaVisivel ? senhaVisivelField.getText() : senhaField.getText();
+        String senha = senhaField.getText();
         
         if (email.isEmpty() || senha.isEmpty()) {
             mostrarErro("Por favor, preencha todos os campos");
             return;
         }
         
-        // Desabilita o botão e mostra o spinner
+        // Desativa o botão e mostra o spinner
         loginButton.setDisable(true);
         loginSpinner.setVisible(true);
         
-        // Cria uma tarefa assíncrona para o login
+        // Cria uma tarefa para autenticação em background
         Task<Usuario> loginTask = new Task<>() {
             @Override
-            protected Usuario call() throws Exception {
-                // Simula um delay de 2 segundos
-                Thread.sleep(2000);
+            protected Usuario call() {
                 return authService.autenticar(email, senha);
             }
         };
         
-        // Configura o que fazer quando a tarefa terminar
+        // Configura o que fazer quando a tarefa for concluída
         loginTask.setOnSucceeded(event -> {
             Usuario usuario = loginTask.getValue();
             if (usuario != null) {
@@ -201,50 +186,30 @@ public class LoginController extends BaseController {
     @FXML
     private void handleCadastro() {
         try {
-            System.out.println("Abrindo tela de cadastro");
             carregarTela("/fxml/CadastroView.fxml");
         } catch (Exception e) {
-            System.err.println("Erro ao abrir cadastro: " + e.getMessage());
+            System.err.println("Erro ao carregar tela de cadastro: " + e.getMessage());
             e.printStackTrace();
-            mostrarErro("Erro ao abrir tela de cadastro: " + e.getMessage());
+            mostrarErro("Erro ao carregar tela de cadastro: " + e.getMessage());
         }
     }
     
     @FXML
     private void handlePoliticaPrivacidade() {
         try {
-            System.out.println("Abrindo política de privacidade");
-            URL fxmlUrl = getClass().getClassLoader().getResource("fxml/PoliticaPrivacidadeView.fxml");
-            if (fxmlUrl == null) {
-                throw new RuntimeException("Arquivo FXML da política de privacidade não encontrado");
-            }
-            
-            FXMLLoader loader = new FXMLLoader(fxmlUrl);
+            URL url = getClass().getResource("/fxml/PoliticaPrivacidadeView.fxml");
+            FXMLLoader loader = new FXMLLoader(url);
             Parent root = loader.load();
-            
-            Scene scene = new Scene(root);
-            URL cssUrl = getClass().getClassLoader().getResource("css/styles.css");
-            if (cssUrl != null) {
-                scene.getStylesheets().add(cssUrl.toExternalForm());
-            }
             
             Stage stage = new Stage();
             stage.setTitle("Política de Privacidade");
-            stage.setScene(scene);
-            stage.show();
+            stage.setScene(new Scene(root));
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.showAndWait();
         } catch (Exception e) {
-            System.err.println("Erro ao abrir política: " + e.getMessage());
+            System.err.println("Erro ao abrir política de privacidade: " + e.getMessage());
             e.printStackTrace();
             mostrarErro("Erro ao abrir política de privacidade: " + e.getMessage());
-        }
-    }
-    
-    @FXML
-    private void handleLogout() {
-        try {
-            carregarTela("/fxml/LoginView.fxml");
-        } catch (Exception e) {
-            mostrarErro("Erro ao realizar logout");
         }
     }
 } 

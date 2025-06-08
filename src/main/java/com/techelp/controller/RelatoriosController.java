@@ -87,7 +87,7 @@ public class RelatoriosController extends BaseController {
             }
             
             // Carrega os técnicos para o combo
-            List<Usuario> tecnicos = usuarioService.listarTodos().stream()
+            List<Usuario> tecnicos = usuarioService.findAll().stream()
                 .filter(u -> u.getTipo() == Usuario.TipoUsuario.TECNICO)
                 .toList();
             tecnicoCombo.setItems(FXCollections.observableArrayList(tecnicos));

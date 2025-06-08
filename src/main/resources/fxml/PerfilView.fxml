@@ -44,10 +44,6 @@
                       promptText="Confirmar nova senha"
                       styleClass="input-field"/>
 
-        <TextField fx:id="telefoneField" 
-                  promptText="Telefone"
-                  styleClass="input-field"/>
-
         <Button text="Salvar Alterações" 
                 onAction="#handleSalvar"
                 styleClass="primary-button"/>
@@ -56,7 +52,8 @@
                 onAction="#handleVoltar"
                 styleClass="secondary-button"/>
     </VBox>
-
-    <Label fx:id="mensagemLabel"
-           styleClass="message-label"/>
+    
+    <Text fx:id="mensagemErro"
+          styleClass="error-text"
+          visible="false"/>
 </VBox> 

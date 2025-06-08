@@ -4,6 +4,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
 import javafx.stage.Stage;
 import java.io.IOException;
 import java.net.URL;
@@ -184,18 +185,30 @@ public abstract class BaseController {
     }
     
     protected void mostrarErro(String mensagem) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle("Erro");
-        alert.setHeaderText(null);
-        alert.setContentText(mensagem);
-        alert.showAndWait();
+        Platform.runLater(() -> {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Erro");
+            alert.setHeaderText(null);
+            alert.setContentText(mensagem);
+            alert.showAndWait();
+        });
     }
     
     protected void mostrarSucesso(String mensagem) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Sucesso");
+        Platform.runLater(() -> {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Sucesso");
+            alert.setHeaderText(null);
+            alert.setContentText(mensagem);
+            alert.showAndWait();
+        });
+    }
+
+    protected boolean confirmarAcao(String titulo, String mensagem) {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle(titulo);
         alert.setHeaderText(null);
         alert.setContentText(mensagem);
-        alert.showAndWait();
+        return alert.showAndWait().orElse(ButtonType.CANCEL) == ButtonType.OK;
     }
 } 

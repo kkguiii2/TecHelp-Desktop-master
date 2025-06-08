@@ -13,17 +13,25 @@ import java.time.LocalDate;
 
 public class ChamadoRepository extends BaseRepository {
     
+    private static final String SELECT_CHAMADO_BASE = 
+        "SELECT c.*, " +
+        "s.name_user as solicitante_nome, s.email as solicitante_email, s.type_user as solicitante_tipo, " +
+        "t.name_user as tecnico_nome, t.email as tecnico_email, t.type_user as tecnico_tipo " +
+        "FROM chamados c " +
+        "LEFT JOIN usuarios s ON c.solicitante_id = s.id_user " +
+        "LEFT JOIN usuarios t ON c.tecnico_id = t.id_user";
+    
     public List<Chamado> findBySolicitante(Usuario solicitante) {
         List<Chamado> chamados = new ArrayList<>();
         String sql = """
             SELECT c.*, 
-                   s.nome as solicitante_nome, s.email as solicitante_email,
-                   s.telefone as solicitante_telefone, s.tipo as solicitante_tipo,
-                   t.nome as tecnico_nome, t.email as tecnico_email,
-                   t.telefone as tecnico_telefone, t.tipo as tecnico_tipo
+                   s.name_user as solicitante_nome, s.email as solicitante_email,
+                   s.type_user as solicitante_tipo,
+                   t.name_user as tecnico_nome, t.email as tecnico_email,
+                   t.type_user as tecnico_tipo
             FROM chamados c
-            INNER JOIN usuarios s ON c.solicitante_id = s.id
-            LEFT JOIN usuarios t ON c.tecnico_id = t.id
+            INNER JOIN usuarios s ON c.solicitante_id = s.id_user
+            LEFT JOIN usuarios t ON c.tecnico_id = t.id_user
             WHERE c.solicitante_id = ?
             ORDER BY c.data_abertura DESC
         """;
@@ -31,20 +39,14 @@ public class ChamadoRepository extends BaseRepository {
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             
-            System.out.println("Buscando chamados para o solicitante: " + solicitante.getNome() + " (ID: " + solicitante.getId() + ")");
             stmt.setLong(1, solicitante.getId());
             
             try (ResultSet rs = stmt.executeQuery()) {
-                System.out.println("Query executada com sucesso");
                 while (rs.next()) {
-                    System.out.println("Processando resultado do chamado ID: " + rs.getLong("id"));
                     chamados.add(mapResultSetToChamado(rs));
                 }
-                System.out.println("Total de chamados encontrados: " + chamados.size());
             }
         } catch (Exception e) {
-            System.err.println("Erro ao buscar chamados do solicitante: " + e.getMessage());
-            e.printStackTrace();
             throw new RuntimeException("Erro ao buscar chamados do solicitante", e);
         }
         return chamados;
@@ -52,24 +54,42 @@ public class ChamadoRepository extends BaseRepository {
     
     public List<Chamado> findByTecnico(Usuario tecnico) {
         List<Chamado> chamados = new ArrayList<>();
-        String sql = """
-            SELECT c.*, 
-                   s.nome as solicitante_nome, s.email as solicitante_email,
-                   s.telefone as solicitante_telefone, s.tipo as solicitante_tipo,
-                   t.nome as tecnico_nome, t.email as tecnico_email,
-                   t.telefone as tecnico_telefone, t.tipo as tecnico_tipo
-            FROM chamados c
-            INNER JOIN usuarios s ON c.solicitante_id = s.id
-            LEFT JOIN usuarios t ON c.tecnico_id = t.id
-            WHERE (c.tecnico_id = ? OR c.tecnico_id IS NULL OR ? = 'ADMIN')
-            ORDER BY c.data_abertura DESC
-        """;
-        
+        String sql;
+
+        if (tecnico.getTipo() == Usuario.TipoUsuario.ADMIN) {
+            sql = """
+                SELECT c.*,
+                       s.name_user as solicitante_nome, s.email as solicitante_email,
+                       s.type_user as solicitante_tipo,
+                       t.name_user as tecnico_nome, t.email as tecnico_email,
+                       t.type_user as tecnico_tipo
+                FROM chamados c
+                INNER JOIN usuarios s ON c.solicitante_id = s.id_user
+                LEFT JOIN usuarios t ON c.tecnico_id = t.id_user
+                ORDER BY c.data_abertura DESC
+            """;
+        } else {
+            sql = """
+                SELECT c.*,
+                       s.name_user as solicitante_nome, s.email as solicitante_email,
+                       s.type_user as solicitante_tipo,
+                       t.name_user as tecnico_nome, t.email as tecnico_email,
+                       t.type_user as tecnico_tipo
+                FROM chamados c
+                INNER JOIN usuarios s ON c.solicitante_id = s.id_user
+                LEFT JOIN usuarios t ON c.tecnico_id = t.id_user
+                WHERE (c.tecnico_id = ? OR c.tecnico_id IS NULL)
+                ORDER BY c.data_abertura DESC
+            """;
+        }
+
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setLong(1, tecnico.getId());
-            stmt.setString(2, tecnico.getTipo().name());
-            
+
+            if (tecnico.getTipo() != Usuario.TipoUsuario.ADMIN) {
+                stmt.setLong(1, tecnico.getId());
+            }
+
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     chamados.add(mapResultSetToChamado(rs));
@@ -85,13 +105,13 @@ public class ChamadoRepository extends BaseRepository {
         List<Chamado> chamados = new ArrayList<>();
         String sql = """
             SELECT c.*, 
-                   s.nome as solicitante_nome, s.email as solicitante_email,
-                   s.telefone as solicitante_telefone, s.tipo as solicitante_tipo,
-                   t.nome as tecnico_nome, t.email as tecnico_email,
-                   t.telefone as tecnico_telefone, t.tipo as tecnico_tipo
+                   s.name_user as solicitante_nome, s.email as solicitante_email,
+                   s.type_user as solicitante_tipo,
+                   t.name_user as tecnico_nome, t.email as tecnico_email,
+                   t.type_user as tecnico_tipo
             FROM chamados c
-            INNER JOIN usuarios s ON c.solicitante_id = s.id
-            LEFT JOIN usuarios t ON c.tecnico_id = t.id
+            INNER JOIN usuarios s ON c.solicitante_id = s.id_user
+            LEFT JOIN usuarios t ON c.tecnico_id = t.id_user
             WHERE c.data_abertura BETWEEN ? AND ?
         """;
         
@@ -113,25 +133,48 @@ public class ChamadoRepository extends BaseRepository {
     
     public List<Chamado> findByTecnicoEStatus(Usuario tecnico, Chamado.StatusChamado status) {
         List<Chamado> chamados = new ArrayList<>();
-        String sql = """
-            SELECT c.*, 
-                   s.nome as solicitante_nome, s.email as solicitante_email,
-                   s.telefone as solicitante_telefone, s.tipo as solicitante_tipo,
-                   t.nome as tecnico_nome, t.email as tecnico_email,
-                   t.telefone as tecnico_telefone, t.tipo as tecnico_tipo
-            FROM chamados c
-            INNER JOIN usuarios s ON c.solicitante_id = s.id
-            LEFT JOIN usuarios t ON c.tecnico_id = t.id
-            WHERE (c.tecnico_id = ? OR ? = 'ADMIN') AND c.status = ?
-            ORDER BY c.data_abertura DESC
-        """;
-        
+        String sql;
+
+        if (tecnico.getTipo() == Usuario.TipoUsuario.ADMIN) {
+            // Se for ADMIN, buscar chamados por status (para todos os técnicos)
+            sql = """
+                SELECT c.*,
+                       s.name_user as solicitante_nome, s.email as solicitante_email,
+                       s.type_user as solicitante_tipo,
+                       t.name_user as tecnico_nome, t.email as tecnico_email,
+                       t.type_user as tecnico_tipo
+                FROM chamados c
+                INNER JOIN usuarios s ON c.solicitante_id = s.id_user
+                LEFT JOIN usuarios t ON c.tecnico_id = t.id_user
+                WHERE c.status = ?
+                ORDER BY c.data_abertura DESC
+            """;
+        } else {
+            // Se não for ADMIN, buscar chamados por técnico e status
+            sql = """
+                SELECT c.*,
+                       s.name_user as solicitante_nome, s.email as solicitante_email,
+                       s.type_user as solicitante_tipo,
+                       t.name_user as tecnico_nome, t.email as tecnico_email,
+                       t.type_user as tecnico_tipo
+                FROM chamados c
+                INNER JOIN usuarios s ON c.solicitante_id = s.id_user
+                LEFT JOIN usuarios t ON c.tecnico_id = t.id_user
+                WHERE c.tecnico_id = ? AND c.status = ?
+                ORDER BY c.data_abertura DESC
+            """;
+        }
+
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setLong(1, tecnico.getId());
-            stmt.setString(2, tecnico.getTipo().name());
-            stmt.setString(3, status.name());
-            
+
+            if (tecnico.getTipo() == Usuario.TipoUsuario.ADMIN) {
+                stmt.setString(1, status.name());
+            } else {
+                stmt.setLong(1, tecnico.getId());
+                stmt.setString(2, status.name());
+            }
+
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     chamados.add(mapResultSetToChamado(rs));
@@ -310,13 +353,13 @@ public class ChamadoRepository extends BaseRepository {
     public Optional<Chamado> findById(Long id) {
         String sql = """
             SELECT c.*, 
-                   s.nome as solicitante_nome, s.email as solicitante_email,
-                   s.telefone as solicitante_telefone, s.tipo as solicitante_tipo,
-                   t.nome as tecnico_nome, t.email as tecnico_email,
-                   t.telefone as tecnico_telefone, t.tipo as tecnico_tipo
+                   s.name_user as solicitante_nome, s.email as solicitante_email,
+                   s.type_user as solicitante_tipo,
+                   t.name_user as tecnico_nome, t.email as tecnico_email,
+                   t.type_user as tecnico_tipo
             FROM chamados c
-            INNER JOIN usuarios s ON c.solicitante_id = s.id
-            LEFT JOIN usuarios t ON c.tecnico_id = t.id
+            INNER JOIN usuarios s ON c.solicitante_id = s.id_user
+            LEFT JOIN usuarios t ON c.tecnico_id = t.id_user
             WHERE c.id = ?
         """;
         
@@ -341,13 +384,13 @@ public class ChamadoRepository extends BaseRepository {
         List<Chamado> chamados = new ArrayList<>();
         String sql = """
             SELECT c.*, 
-                   s.nome as solicitante_nome, s.email as solicitante_email,
-                   s.telefone as solicitante_telefone, s.tipo as solicitante_tipo,
-                   t.nome as tecnico_nome, t.email as tecnico_email,
-                   t.telefone as tecnico_telefone, t.tipo as tecnico_tipo
+                   s.name_user as solicitante_nome, s.email as solicitante_email,
+                   s.type_user as solicitante_tipo,
+                   t.name_user as tecnico_nome, t.email as tecnico_email,
+                   t.type_user as tecnico_tipo
             FROM chamados c
-            INNER JOIN usuarios s ON c.solicitante_id = s.id
-            LEFT JOIN usuarios t ON c.tecnico_id = t.id
+            INNER JOIN usuarios s ON c.solicitante_id = s.id_user
+            LEFT JOIN usuarios t ON c.tecnico_id = t.id_user
             ORDER BY c.data_abertura DESC
         """;
         
@@ -379,7 +422,6 @@ public class ChamadoRepository extends BaseRepository {
             solicitante.setId(rs.getLong("solicitante_id"));
             solicitante.setNome(rs.getString("solicitante_nome"));
             solicitante.setEmail(rs.getString("solicitante_email"));
-            solicitante.setTelefone(rs.getString("solicitante_telefone"));
             solicitante.setTipo(Usuario.TipoUsuario.valueOf(rs.getString("solicitante_tipo")));
             chamado.setSolicitante(solicitante);
             
@@ -390,7 +432,6 @@ public class ChamadoRepository extends BaseRepository {
                 tecnico.setId(tecnicoId);
                 tecnico.setNome(rs.getString("tecnico_nome"));
                 tecnico.setEmail(rs.getString("tecnico_email"));
-                tecnico.setTelefone(rs.getString("tecnico_telefone"));
                 tecnico.setTipo(Usuario.TipoUsuario.valueOf(rs.getString("tecnico_tipo")));
                 chamado.setTecnico(tecnico);
             }
@@ -407,21 +448,11 @@ public class ChamadoRepository extends BaseRepository {
             
             // Mapear categoria_ia se existir
             String categoriaIa = rs.getString("categoria_ia");
-            if (categoriaIa != null) {
-                chamado.setCategoriaIa(categoriaIa);
-            }
+            chamado.setCategoriaIa(rs.wasNull() ? null : categoriaIa);
             
             // Mapear tempo_resolucao se existir
-            Object tempoResolucao = rs.getObject("tempo_resolucao");
-            if (tempoResolucao != null) {
-                chamado.setTempoResolucao(rs.getLong("tempo_resolucao"));
-            }
-            
-            // Mapear avaliação se existir
-            Object avaliacao = rs.getObject("avaliacao");
-            if (avaliacao != null) {
-                chamado.setAvaliacao(rs.getInt("avaliacao"));
-            }
+            long tempoResolucaoVal = rs.getLong("tempo_resolucao");
+            chamado.setTempoResolucao(rs.wasNull() ? null : tempoResolucaoVal);
             
             return chamado;
         } catch (SQLException e) {
@@ -429,6 +460,13 @@ public class ChamadoRepository extends BaseRepository {
             e.printStackTrace();
             throw e;
         }
+    }
+
+    private void mapUsuarioFromResultSet(ResultSet rs, String prefix, Usuario usuario) throws SQLException {
+        usuario.setId(rs.getLong(prefix + "_id"));
+        usuario.setNome(rs.getString(prefix + "_nome"));
+        usuario.setEmail(rs.getString(prefix + "_email"));
+        usuario.setTipo(Usuario.TipoUsuario.valueOf(rs.getString(prefix + "_tipo")));
     }
 
     public int countByPeriodo(LocalDateTime inicio, LocalDateTime fim) {
@@ -546,13 +584,13 @@ public class ChamadoRepository extends BaseRepository {
         List<Chamado> chamados = new ArrayList<>();
         String sql = """
             SELECT c.*, 
-                   s.nome as solicitante_nome, s.email as solicitante_email,
-                   s.telefone as solicitante_telefone, s.tipo as solicitante_tipo,
-                   t.nome as tecnico_nome, t.email as tecnico_email,
-                   t.telefone as tecnico_telefone, t.tipo as tecnico_tipo
+                   s.name_user as solicitante_nome, s.email as solicitante_email,
+                   s.type_user as solicitante_tipo,
+                   t.name_user as tecnico_nome, t.email as tecnico_email,
+                   t.type_user as tecnico_tipo
             FROM chamados c
-            INNER JOIN usuarios s ON c.solicitante_id = s.id
-            LEFT JOIN usuarios t ON c.tecnico_id = t.id
+            INNER JOIN usuarios s ON c.solicitante_id = s.id_user
+            LEFT JOIN usuarios t ON c.tecnico_id = t.id_user
             WHERE c.tecnico_id = ? AND c.data_abertura BETWEEN ? AND ?
         """;
         
@@ -577,13 +615,13 @@ public class ChamadoRepository extends BaseRepository {
         List<Chamado> chamados = new ArrayList<>();
         String sql = """
             SELECT c.*, 
-                   s.nome as solicitante_nome, s.email as solicitante_email,
-                   s.telefone as solicitante_telefone, s.tipo as solicitante_tipo,
-                   t.nome as tecnico_nome, t.email as tecnico_email,
-                   t.telefone as tecnico_telefone, t.tipo as tecnico_tipo
+                   s.name_user as solicitante_nome, s.email as solicitante_email,
+                   s.type_user as solicitante_tipo,
+                   t.name_user as tecnico_nome, t.email as tecnico_email,
+                   t.type_user as tecnico_tipo
             FROM chamados c
-            INNER JOIN usuarios s ON c.solicitante_id = s.id
-            LEFT JOIN usuarios t ON c.tecnico_id = t.id
+            INNER JOIN usuarios s ON c.solicitante_id = s.id_user
+            LEFT JOIN usuarios t ON c.tecnico_id = t.id_user
             WHERE c.categoria = ? AND c.data_abertura BETWEEN ? AND ?
         """;
         

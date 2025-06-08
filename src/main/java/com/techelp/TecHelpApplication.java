@@ -8,13 +8,18 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import com.techelp.config.DatabaseSyncManager;
 
 public class TecHelpApplication extends Application {
+    private DatabaseSyncManager syncManager;
     
     @Override
     public void start(Stage primaryStage) throws Exception {
         // Inicializa o banco de dados
         new DatabaseInitializer().initialize();
+        
+        // Inicializa o gerenciador de sincronização
+        syncManager = new DatabaseSyncManager();
         
         // Carrega a tela de login
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/LoginView.fxml"));
@@ -34,6 +39,14 @@ public class TecHelpApplication extends Application {
         WindowManager.setupLoginWindow(primaryStage);
         
         primaryStage.show();
+    }
+    
+    @Override
+    public void stop() {
+        // Para o gerenciador de sincronização quando a aplicação é fechada
+        if (syncManager != null) {
+            syncManager.stopSync();
+        }
     }
     
     public static void main(String[] args) {

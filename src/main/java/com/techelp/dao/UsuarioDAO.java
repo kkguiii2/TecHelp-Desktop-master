@@ -11,8 +11,8 @@ import java.time.LocalDateTime;
 public class UsuarioDAO {
     
     public void salvar(Usuario usuario) throws SQLException {
-        String sql = "INSERT INTO usuarios (nome, email, senha, telefone, tipo, lgpd_aceite, data_criacao) " +
-                    "VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO usuarios (name_user, email, password, type_user, dept, data_criacao) " +
+                    "VALUES (?, ?, ?, ?, ?, ?)";
                     
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -20,10 +20,9 @@ public class UsuarioDAO {
             stmt.setString(1, usuario.getNome());
             stmt.setString(2, usuario.getEmail());
             stmt.setString(3, usuario.getSenha());
-            stmt.setString(4, usuario.getTelefone());
-            stmt.setString(5, usuario.getTipo().name());
-            stmt.setBoolean(6, usuario.isLgpdAceite());
-            stmt.setTimestamp(7, Timestamp.valueOf(usuario.getDataCriacao()));
+            stmt.setString(4, usuario.getTipo().name());
+            stmt.setString(5, usuario.getDepartamento());
+            stmt.setTimestamp(6, Timestamp.valueOf(usuario.getDataCriacao()));
             
             stmt.executeUpdate();
             
@@ -36,7 +35,7 @@ public class UsuarioDAO {
     }
     
     public Optional<Usuario> buscarPorEmail(String email) throws SQLException {
-        String sql = "SELECT * FROM usuarios WHERE email = ?";
+        String sql = "SELECT id_user, name_user, email, password, type_user, dept, data_criacao FROM usuarios WHERE email = ?";
         
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -54,7 +53,7 @@ public class UsuarioDAO {
     }
     
     public Optional<Usuario> buscarPorId(Long id) throws SQLException {
-        String sql = "SELECT * FROM usuarios WHERE id = ?";
+        String sql = "SELECT id_user, name_user, email, password, type_user, dept, data_criacao FROM usuarios WHERE id_user = ?";
         
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -72,7 +71,7 @@ public class UsuarioDAO {
     }
     
     public List<Usuario> listarTodos() throws SQLException {
-        String sql = "SELECT * FROM usuarios ORDER BY nome";
+        String sql = "SELECT id_user, name_user, email, password, type_user, dept, data_criacao FROM usuarios ORDER BY name_user";
         List<Usuario> usuarios = new ArrayList<>();
         
         try (Connection conn = DatabaseConnection.getConnection();
@@ -88,15 +87,15 @@ public class UsuarioDAO {
     }
     
     public void atualizar(Usuario usuario) throws SQLException {
-        String sql = "UPDATE usuarios SET nome = ?, email = ?, telefone = ?, tipo = ? WHERE id = ?";
+        String sql = "UPDATE usuarios SET name_user = ?, email = ?, type_user = ?, dept = ? WHERE id_user = ?";
         
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             
             stmt.setString(1, usuario.getNome());
             stmt.setString(2, usuario.getEmail());
-            stmt.setString(3, usuario.getTelefone());
-            stmt.setString(4, usuario.getTipo().name());
+            stmt.setString(3, usuario.getTipo().name());
+            stmt.setString(4, usuario.getDepartamento());
             stmt.setLong(5, usuario.getId());
             
             stmt.executeUpdate();
@@ -104,7 +103,7 @@ public class UsuarioDAO {
     }
     
     public void excluir(Long id) throws SQLException {
-        String sql = "DELETE FROM usuarios WHERE id = ?";
+        String sql = "DELETE FROM usuarios WHERE id_user = ?";
         
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -132,54 +131,15 @@ public class UsuarioDAO {
         return false;
     }
     
-    public void atualizarUltimoAcesso(Long id) throws SQLException {
-        String sql = "UPDATE usuarios SET ultimoAcesso = ? WHERE id = ?";
-        
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
-            stmt.setTimestamp(1, Timestamp.valueOf(java.time.LocalDateTime.now()));
-            stmt.setLong(2, id);
-            
-            stmt.executeUpdate();
-        }
-    }
-    
-    public void atualizarAceiteLgpd(Long id, LocalDateTime dataAceite) throws SQLException {
-        String sql = "UPDATE usuarios SET lgpdAceite = true, dataAceiteLgpd = ? WHERE id = ?";
-        
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
-            stmt.setTimestamp(1, Timestamp.valueOf(dataAceite));
-            stmt.setLong(2, id);
-            
-            stmt.executeUpdate();
-        }
-    }
-    
     private Usuario mapearUsuario(ResultSet rs) throws SQLException {
         Usuario usuario = new Usuario();
-        usuario.setId(rs.getLong("id"));
-        usuario.setNome(rs.getString("nome"));
+        usuario.setId(rs.getLong("id_user"));
+        usuario.setNome(rs.getString("name_user"));
         usuario.setEmail(rs.getString("email"));
-        usuario.setSenha(rs.getString("senha"));
-        usuario.setTelefone(rs.getString("telefone"));
-        usuario.setTipo(Usuario.TipoUsuario.valueOf(rs.getString("tipo")));
+        usuario.setSenha(rs.getString("password"));
+        usuario.setTipo(Usuario.TipoUsuario.valueOf(rs.getString("type_user")));
+        usuario.setDepartamento(rs.getString("dept"));
         usuario.setDataCriacao(rs.getTimestamp("data_criacao").toLocalDateTime());
-        
-        Timestamp ultimoAcesso = rs.getTimestamp("ultimo_acesso");
-        if (ultimoAcesso != null) {
-            usuario.setUltimoAcesso(ultimoAcesso.toLocalDateTime());
-        }
-        
-        usuario.setLgpdAceite(rs.getBoolean("lgpd_aceite"));
-        
-        Timestamp dataAceiteLgpd = rs.getTimestamp("data_aceite_lgpd");
-        if (dataAceiteLgpd != null) {
-            usuario.setDataAceiteLgpd(dataAceiteLgpd.toLocalDateTime());
-        }
-        
         return usuario;
     }
 } 

@@ -34,7 +34,7 @@
                 styleClass="nav-button"/>
     </HBox>
 
-    <VBox spacing="20" styleClass="dashboard-container">
+    <VBox spacing="20" styleClass="dashboard-container" VBox.vgrow="ALWAYS">
         <padding>
             <Insets top="20" right="20" bottom="20" left="20"/>
         </padding>
@@ -97,4 +97,7 @@
             </VBox>
         </HBox>
     </VBox>
+    
+    <!-- Barra de Status -->
+    <fx:include source="StatusBar.fxml"/>
 </VBox> 

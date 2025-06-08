@@ -48,13 +48,19 @@
             <columns>
                 <TableColumn fx:id="idColumn" text="ID"/>
                 <TableColumn fx:id="nomeColumn" text="Nome"/>
-                <TableColumn fx:id="emailColumn" text="Email"/>
-                <TableColumn fx:id="tipoColumn" text="Tipo"/>
-                <TableColumn fx:id="telefoneColumn" text="Telefone"/>
-                <TableColumn fx:id="dataCriacaoColumn" text="Data Criação"/>
-                <TableColumn fx:id="ultimoAcessoColumn" text="Último Acesso"/>
-                <TableColumn fx:id="acoesColumn" text="Ações"/>
+                <TableColumn fx:id="emailColumn" text="Email" prefWidth="150"/>
+                <TableColumn fx:id="tipoColumn" text="Tipo" prefWidth="100"/>
+                <TableColumn fx:id="dataCriacaoColumn" text="Data de Criação" prefWidth="150"/>
+                <TableColumn fx:id="acoesColumn" text="Ações" prefWidth="150"/>
             </columns>
         </TableView>
     </VBox>
+
+    <HBox alignment="CENTER_RIGHT" spacing="10">
+        <Button text="Novo Usuário" onAction="#handleNovoUsuario" styleClass="primary-button"/>
+    </HBox>
+
+    <Text fx:id="mensagemErro"
+          styleClass="error-text"
+          visible="false"/>
 </VBox> 

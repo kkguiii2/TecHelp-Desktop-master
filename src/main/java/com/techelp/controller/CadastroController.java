@@ -197,6 +197,19 @@ public class CadastroController extends BaseController {
                 return;
             }
 
+            // Validação de senha forte
+            String senha = senhaField.getText();
+            boolean okLen = senha.length() >= 8;
+            boolean okUpper = senha.matches(".*[A-Z].*");
+            boolean okLower = senha.matches(".*[a-z].*");
+            boolean okDigit = senha.matches(".*\\d.*");
+            boolean okSpecial = senha.matches(".*[^A-Za-z0-9].*");
+
+            if (!(okLen && okUpper && okLower && okDigit && okSpecial)) {
+                mostrarErro("A senha não atende a todos os requisitos de segurança");
+                return;
+            }
+
             if (!lgpdCheckbox.isSelected()) {
                 mostrarErro("É necessário aceitar os termos de uso e política de privacidade");
                 return;
@@ -226,8 +239,6 @@ public class CadastroController extends BaseController {
             }
             
             novoUsuario.setDataCriacao(LocalDateTime.now());
-            novoUsuario.setLgpdAceite(true);
-            novoUsuario.setDataAceiteLgpd(LocalDateTime.now());
             
             // Salva o usuário
             usuarioService.salvar(novoUsuario);

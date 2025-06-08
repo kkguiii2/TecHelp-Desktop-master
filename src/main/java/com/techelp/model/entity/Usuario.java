@@ -16,37 +16,27 @@ import java.util.HashSet;
 public class Usuario {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_user")
     private Long id;
 
-    @Column(nullable = false)
+    @Column(name = "name_user", nullable = false)
     private String nome;
 
     @Column(nullable = false, unique = true)
     private String email;
 
-    @Column(nullable = false)
+    @Column(name = "password", nullable = false)
     private String senha;
 
-    @Column(nullable = false)
+    @Column(name = "type_user", nullable = false)
     @Enumerated(EnumType.STRING)
     private TipoUsuario tipo;
 
-    @Column(nullable = false)
+    @Column(name = "dept", nullable = false)
     private String departamento;
-
-    private String telefone;
 
     @Column(name = "data_criacao", nullable = false)
     private LocalDateTime dataCriacao;
-
-    @Column(name = "ultimo_acesso")
-    private LocalDateTime ultimoAcesso;
-
-    @Column(name = "lgpd_aceite")
-    private boolean lgpdAceite;
-
-    @Column(name = "data_aceite_lgpd")
-    private LocalDateTime dataAceiteLgpd;
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "permissoes_usuario", 

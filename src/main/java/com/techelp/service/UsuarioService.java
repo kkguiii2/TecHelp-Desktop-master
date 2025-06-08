@@ -1,46 +1,66 @@
 package com.techelp.service;
 
 import com.techelp.model.entity.Usuario;
-import com.techelp.dao.UsuarioDAO;
+import com.techelp.repository.UsuarioRepository;
+import com.techelp.cache.CacheManager;
 import java.util.List;
 import java.util.Optional;
 
 public class UsuarioService {
-    private UsuarioDAO usuarioDAO;
-
+    private final UsuarioRepository usuarioRepository;
+    private final CacheManager cacheManager;
+    
     public UsuarioService() {
-        this.usuarioDAO = new UsuarioDAO();
+        this.usuarioRepository = new UsuarioRepository();
+        this.cacheManager = CacheManager.getInstance();
     }
-
-    public void salvar(Usuario usuario) throws Exception {
-        usuarioDAO.salvar(usuario);
+    
+    public Usuario findById(Long id) {
+        return cacheManager.getUsuarioCache().get(id, key -> {
+            Usuario usuario = usuarioRepository.findById(id);
+            if (usuario != null) {
+                cacheManager.getUsuarioCache().put(id, usuario);
+            }
+            return usuario;
+        });
     }
-
-    public void atualizar(Usuario usuario) throws Exception {
-        usuarioDAO.atualizar(usuario);
+    
+    public Usuario findByEmail(String email) {
+        return usuarioRepository.findByEmail(email);
     }
-
-    public void excluirUsuario(Long id) throws Exception {
-        usuarioDAO.excluir(id);
+    
+    public List<Usuario> findAll() {
+        return usuarioRepository.findAll();
     }
-
-    public Usuario buscarPorId(Long id) throws Exception {
-        Optional<Usuario> usuario = usuarioDAO.buscarPorId(id);
-        return usuario.orElseThrow(() -> new Exception("Usuário não encontrado"));
+    
+    public Usuario salvar(Usuario usuario) {
+        Usuario saved = usuarioRepository.save(usuario);
+        if (saved != null) {
+            cacheManager.getUsuarioCache().put(saved.getId(), saved);
+        }
+        return saved;
     }
-
-    public Usuario buscarPorEmail(String email) throws Exception {
-        Optional<Usuario> usuario = usuarioDAO.buscarPorEmail(email);
-        return usuario.orElseThrow(() -> new Exception("Usuário não encontrado"));
+    
+    public Usuario atualizar(Usuario usuario) {
+        Usuario updated = usuarioRepository.save(usuario);
+        if (updated != null) {
+            cacheManager.getUsuarioCache().put(updated.getId(), updated);
+        }
+        return updated;
     }
-
-    public List<Usuario> listarTodos() throws Exception {
-        return usuarioDAO.listarTodos();
+    
+    public void excluir(Long id) {
+        usuarioRepository.delete(id);
+        cacheManager.getUsuarioCache().invalidate(id);
+    }
+    
+    public void limparCache() {
+        cacheManager.getUsuarioCache().invalidateAll();
     }
 
     public List<Usuario> listarTecnicos() {
         try {
-            return usuarioDAO.listarTodos().stream()
+            return usuarioRepository.findAll().stream()
                 .filter(u -> u.getTipo() == Usuario.TipoUsuario.TECNICO)
                 .toList();
         } catch (Exception e) {

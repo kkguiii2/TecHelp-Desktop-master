@@ -33,12 +33,16 @@
                       promptText="Senha"
                       styleClass="input-field"/>
 
-        <TextField fx:id="telefoneField" 
-                  promptText="Telefone"
-                  styleClass="input-field"/>
+        <PasswordField fx:id="confirmaSenhaField" 
+                      promptText="Confirmar Senha"
+                      styleClass="input-field"/>
 
         <ComboBox fx:id="tipoUsuarioCombo"
                   promptText="Tipo de usuário"
+                  styleClass="input-field"/>
+
+        <TextField fx:id="departamentoField" 
+                  promptText="Departamento"
                   styleClass="input-field"/>
 
         <HBox spacing="10" alignment="CENTER">
