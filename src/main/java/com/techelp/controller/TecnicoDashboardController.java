@@ -393,4 +393,35 @@ public class TecnicoDashboardController extends BaseController {
             }
         });
     }
+    
+    public void inicializarNotificacoes(Usuario tecnico) {
+        // Registra listener para notificações
+        notificacaoService.registrarListener(tecnico, mensagem -> {
+            // Atualiza a interface quando receber uma notificação
+            Platform.runLater(() -> {
+                // Reproduz som de notificação
+                java.awt.Toolkit.getDefaultToolkit().beep();
+                
+                // Atualiza a tabela de chamados
+                aplicarFiltros();
+                
+                // Atualiza estatísticas e gráficos
+                atualizarEstatisticas();
+                atualizarGraficos();
+                
+                // Mostra notificação visual
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setTitle("Novo Chamado");
+                alert.setHeaderText(null);
+                alert.setContentText(mensagem);
+                
+                // Adiciona estilo à notificação
+                DialogPane dialogPane = alert.getDialogPane();
+                dialogPane.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
+                dialogPane.getStyleClass().add("notification-dialog");
+                
+                alert.show();
+            });
+        });
+    }
 } 

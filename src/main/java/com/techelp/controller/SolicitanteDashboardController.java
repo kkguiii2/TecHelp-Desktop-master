@@ -17,6 +17,7 @@ import javafx.scene.Scene;
 import javafx.scene.chart.PieChart;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.text.Text;
+import javafx.application.Platform;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -94,6 +95,7 @@ public class SolicitanteDashboardController extends BaseController {
         try {
             System.out.println("Inicializando SolicitanteDashboardController");
             
+            // Verifica se o usuário está autenticado
             solicitanteLogado = authService.getUsuarioLogado();
             if (solicitanteLogado == null) {
                 System.err.println("Usuário não autenticado, redirecionando para login");
@@ -101,15 +103,30 @@ public class SolicitanteDashboardController extends BaseController {
                 return;
             }
             
-            // Primeiro configura a tabela e os filtros
-            configurarTabela();
-            configurarFiltros();
+            // Verifica se todas as colunas foram injetadas corretamente
+            if (idColumn == null || tituloColumn == null || tecnicoColumn == null ||
+                statusColumn == null || prioridadeColumn == null || dataAberturaColumn == null ||
+                tempoDecorridoColumn == null || acoesColumn == null) {
+                throw new RuntimeException("Uma ou mais colunas da tabela não foram inicializadas corretamente");
+            }
             
-            // Depois inicializa as notificações
-            inicializarNotificacoes(solicitanteLogado);
-            
-            // Por último carrega os dados
-            carregarChamados();
+            // Configura a tabela e os filtros
+            Platform.runLater(() -> {
+                try {
+                    configurarTabela();
+                    configurarFiltros();
+                    
+                    // Inicializa as notificações
+                    inicializarNotificacoes(solicitanteLogado);
+                    
+                    // Carrega os dados
+                    carregarChamados();
+                } catch (Exception e) {
+                    System.err.println("Erro ao configurar componentes: " + e.getMessage());
+                    e.printStackTrace();
+                    mostrarErro("Erro ao configurar componentes: " + e.getMessage());
+                }
+            });
             
         } catch (Exception e) {
             System.err.println("Erro ao inicializar dashboard: " + e.getMessage());
@@ -125,36 +142,42 @@ public class SolicitanteDashboardController extends BaseController {
     }
     
     private void configurarTabela() {
-        idColumn.setCellValueFactory(new PropertyValueFactory<>("id"));
-        tituloColumn.setCellValueFactory(new PropertyValueFactory<>("titulo"));
-        tecnicoColumn.setCellValueFactory(cellData -> 
-            new SimpleStringProperty(
-                cellData.getValue().getTecnico() != null ? 
-                cellData.getValue().getTecnico().getNome() : "Não atribuído"));
-        statusColumn.setCellValueFactory(new PropertyValueFactory<>("status"));
-        prioridadeColumn.setCellValueFactory(new PropertyValueFactory<>("prioridade"));
-        
-        dataAberturaColumn.setCellValueFactory(new PropertyValueFactory<>("dataAbertura"));
-        dataAberturaColumn.setCellFactory(column -> new TableCell<ChamadoDTO, LocalDateTime>() {
-            @Override
-            protected void updateItem(LocalDateTime item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty || item == null) {
-                    setText(null);
-                } else {
-                    setText(DATE_FORMATTER.format(item));
+        try {
+            idColumn.setCellValueFactory(new PropertyValueFactory<>("id"));
+            tituloColumn.setCellValueFactory(new PropertyValueFactory<>("titulo"));
+            tecnicoColumn.setCellValueFactory(cellData -> 
+                new SimpleStringProperty(
+                    cellData.getValue().getTecnico() != null ? 
+                    cellData.getValue().getTecnico().getNome() : "Não atribuído"));
+            statusColumn.setCellValueFactory(new PropertyValueFactory<>("status"));
+            prioridadeColumn.setCellValueFactory(new PropertyValueFactory<>("prioridade"));
+            
+            dataAberturaColumn.setCellValueFactory(new PropertyValueFactory<>("dataAbertura"));
+            dataAberturaColumn.setCellFactory(column -> new TableCell<ChamadoDTO, LocalDateTime>() {
+                @Override
+                protected void updateItem(LocalDateTime item, boolean empty) {
+                    super.updateItem(item, empty);
+                    if (empty || item == null) {
+                        setText(null);
+                    } else {
+                        setText(DATE_FORMATTER.format(item));
+                    }
                 }
-            }
-        });
-        
-        tempoDecorridoColumn.setCellValueFactory(cellData -> {
-            LocalDateTime abertura = cellData.getValue().getDataAbertura();
-            LocalDateTime agora = LocalDateTime.now();
-            long horas = ChronoUnit.HOURS.between(abertura, agora);
-            return new SimpleStringProperty(horas + "h");
-        });
-        
-        configurarColunaAcoes();
+            });
+            
+            tempoDecorridoColumn.setCellValueFactory(cellData -> {
+                LocalDateTime abertura = cellData.getValue().getDataAbertura();
+                LocalDateTime agora = LocalDateTime.now();
+                long horas = ChronoUnit.HOURS.between(abertura, agora);
+                return new SimpleStringProperty(horas + "h");
+            });
+            
+            configurarColunaAcoes();
+        } catch (Exception e) {
+            System.err.println("Erro ao configurar tabela: " + e.getMessage());
+            e.printStackTrace();
+            mostrarErro("Erro ao configurar tabela: " + e.getMessage());
+        }
     }
     
     private void configurarFiltros() {
@@ -241,6 +264,16 @@ public class SolicitanteDashboardController extends BaseController {
     }
     
     private void avaliarChamado(ChamadoDTO chamado) {
+        // Verificação adicional de segurança
+        if (chamado.getStatus() != Chamado.StatusChamado.FECHADO) {
+            mostrarErro("Apenas chamados fechados podem ser avaliados.");
+            return;
+        }
+        if (chamado.getAvaliacao() != null) {
+            mostrarErro("Este chamado já foi avaliado.");
+            return;
+        }
+
         Dialog<Integer> dialog = new Dialog<>();
         dialog.setTitle("Avaliar Chamado");
         dialog.setHeaderText("Como foi seu atendimento?");
@@ -304,9 +337,26 @@ public class SolicitanteDashboardController extends BaseController {
         
         dialog.showAndWait().ifPresent(avaliacao -> {
             try {
+                // Salva a avaliação no banco
                 chamadoService.avaliarChamado(chamado.getId(), avaliacao);
-                carregarChamados();
-                mostrarSucesso("Avaliação registrada com sucesso!");
+                
+                // Força uma atualização completa dos dados
+                chamadoService.limparCache();
+                
+                // Atualiza a interface em um único runLater para evitar problemas de concorrência
+                Platform.runLater(() -> {
+                    // Recarrega o chamado do banco para garantir dados atualizados
+                    ChamadoDTO chamadoAtualizado = new ChamadoDTO(chamadoService.buscarChamado(chamado.getId()));
+                    
+                    // Atualiza o objeto local com os dados do banco
+                    chamado.setAvaliacao(chamadoAtualizado.getAvaliacao());
+                    
+                    // Força uma atualização completa da tabela
+                    carregarChamados();
+                    
+                    // Mostra mensagem de sucesso após a atualização
+                    mostrarSucesso("Avaliação registrada com sucesso!");
+                });
             } catch (Exception e) {
                 mostrarErro("Erro ao registrar avaliação: " + e.getMessage());
             }
@@ -317,7 +367,7 @@ public class SolicitanteDashboardController extends BaseController {
         acoesColumn.setCellFactory(column -> new TableCell<ChamadoDTO, Void>() {
             private final Button verButton = new Button("Ver");
             private final Button avaliarButton = new Button("Avaliar");
-            private final HBox box = new HBox(5, verButton, avaliarButton);
+            private HBox box;
             
             {
                 verButton.setOnAction(event -> {
@@ -330,7 +380,7 @@ public class SolicitanteDashboardController extends BaseController {
                     avaliarChamado(chamado);
                 });
                 
-                verButton.getStyleClass().add("action-button");
+                verButton.getStyleClass().addAll("action-button", "view");
                 avaliarButton.getStyleClass().addAll("action-button", "rate");
             }
             
@@ -341,8 +391,19 @@ public class SolicitanteDashboardController extends BaseController {
                     setGraphic(null);
                 } else {
                     ChamadoDTO chamado = getTableView().getItems().get(getIndex());
-                    avaliarButton.setVisible(chamado.getStatus() == Chamado.StatusChamado.FECHADO && 
-                        chamado.getAvaliacao() == null);
+                    // Mostra o botão de avaliação apenas se o chamado estiver fechado E não tiver sido avaliado ainda
+                    boolean podeAvaliar = chamado.getStatus() == Chamado.StatusChamado.FECHADO && 
+                                        chamado.getAvaliacao() == null;
+                    
+                    // Recria o HBox com os botões necessários
+                    box = new HBox(5);
+                    box.setAlignment(javafx.geometry.Pos.CENTER);
+                    box.getChildren().add(verButton);
+                    
+                    if (podeAvaliar) {
+                        box.getChildren().add(avaliarButton);
+                    }
+                    
                     setGraphic(box);
                 }
             }
@@ -350,10 +411,24 @@ public class SolicitanteDashboardController extends BaseController {
     }
     
     private void carregarChamados() {
-        List<ChamadoDTO> chamados = chamadoService.listarChamadosPorSolicitante(solicitanteLogado);
-        chamadosTable.setItems(FXCollections.observableArrayList(chamados));
-        atualizarEstatisticas();
-        atualizarGraficos();
+        // Limpa o cache antes de recarregar os dados
+        chamadoService.limparCache();
+        
+        Platform.runLater(() -> {
+            // Busca os dados atualizados do banco
+            List<ChamadoDTO> chamados = chamadoService.listarChamadosPorSolicitante(solicitanteLogado);
+            
+            // Atualiza a tabela
+            chamadosTable.getItems().clear();
+            chamadosTable.setItems(FXCollections.observableArrayList(chamados));
+            
+            // Força uma atualização visual completa
+            chamadosTable.refresh();
+            
+            // Atualiza as estatísticas e gráficos
+            atualizarEstatisticas();
+            atualizarGraficos();
+        });
     }
     
     @FXML

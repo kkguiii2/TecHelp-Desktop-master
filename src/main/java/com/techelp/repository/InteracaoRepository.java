@@ -147,4 +147,15 @@ public class InteracaoRepository extends BaseRepository {
             throw new RuntimeException("Erro ao excluir interação: " + e.getMessage(), e);
         }
     }
+    
+    public void deleteAll() {
+        String sql = "DELETE FROM interacoes";
+        
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.executeUpdate();
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao excluir todas as interações: " + e.getMessage(), e);
+        }
+    }
 } 

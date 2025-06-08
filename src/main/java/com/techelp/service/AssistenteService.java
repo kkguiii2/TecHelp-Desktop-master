@@ -1,6 +1,6 @@
 package com.techelp.service;
 
-import com.techelp.config.GeminiConfig;
+import com.techelp.config.GroqConfig;
 import com.techelp.model.entity.Chamado;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -17,15 +17,24 @@ import org.slf4j.LoggerFactory;
 import com.techelp.config.AppConfig;
 import java.util.HashMap;
 import java.util.regex.Pattern;
+import java.util.concurrent.TimeUnit;
 
-public class GeminiService {
-    private static final Logger logger = LoggerFactory.getLogger(GeminiService.class);
+public class AssistenteService {
+    private static final Logger logger = LoggerFactory.getLogger(AssistenteService.class);
     private final HttpClient client;
     private static final int TIMEOUT_SECONDS = 30;
     private List<JSONObject> conversationHistory;
     private static final Map<String, List<String>> PALAVRAS_CHAVE = new HashMap<>();
     private static final Map<String, List<String>> SOLUCOES_AUTOMATICAS = new HashMap<>();
     
+    // Configurações para o exponential backoff
+    private static final int MAX_RETRIES = 3;
+    private static final int INITIAL_BACKOFF_MS = 1000;
+    private static final int MAX_BACKOFF_MS = 10000;
+    private static final double BACKOFF_MULTIPLIER = 2.0;
+    private long lastRequestTime = 0;
+    private static final long MIN_REQUEST_INTERVAL_MS = 1000; // 1 segundo entre requisições
+
     static {
         // Inicializa palavras-chave para cada categoria
         PALAVRAS_CHAVE.put("HARDWARE", List.of(
@@ -96,8 +105,8 @@ public class GeminiService {
         ));
     }
     
-    public GeminiService() {
-        logger.info("Inicializando GeminiService...");
+    public AssistenteService() {
+        logger.info("Inicializando AssistenteService...");
         this.client = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(TIMEOUT_SECONDS))
             .build();
@@ -110,34 +119,106 @@ public class GeminiService {
             "Mantenha suas respostas concisas e focadas na solução do problema. " +
             "Se após algumas tentativas o problema não for resolvido, sugira encaminhar para um técnico humano."
         );
-        logger.info("GeminiService inicializado com sucesso.");
+        logger.info("AssistenteService inicializado com sucesso.");
     }
     
     public String processarMensagem(String mensagem, Chamado chamado) {
-        // Se for uma saudação, responde adequadamente
-        if (isSaudacao(mensagem)) {
-            return "Olá! Como posso ajudar?";
+        try {
+            // Adiciona a mensagem do usuário ao histórico
+            addUserMessage(mensagem);
+            
+            // Prepara o contexto para o Groq
+            String contexto = String.format(
+                "Categoria do chamado: %s\nTítulo: %s\nDescrição: %s\n\nHistórico da conversa:\n%s",
+                chamado.getCategoriaIa(),
+                chamado.getTitulo(),
+                chamado.getDescricao(),
+                buildConversationText()
+            );
+            
+            // Prepara o payload para a API do Groq
+            JSONObject payload = new JSONObject()
+                .put("model", GroqConfig.getModel())
+                .put("messages", new JSONArray()
+                    .put(new JSONObject()
+                        .put("role", "system")
+                        .put("content", "Você é um assistente de suporte técnico profissional e eficiente."))
+                    .put(new JSONObject()
+                        .put("role", "user")
+                        .put("content", contexto)));
+
+            // Implementa exponential backoff
+            int retryCount = 0;
+            int backoffMs = INITIAL_BACKOFF_MS;
+            HttpResponse<String> response = null;
+            boolean success = false;
+
+            while (!success && retryCount < MAX_RETRIES) {
+                try {
+                    // Verifica o intervalo mínimo entre requisições
+                    long currentTime = System.currentTimeMillis();
+                    long timeSinceLastRequest = currentTime - lastRequestTime;
+                    if (timeSinceLastRequest < MIN_REQUEST_INTERVAL_MS) {
+                        Thread.sleep(MIN_REQUEST_INTERVAL_MS - timeSinceLastRequest);
+                    }
+
+                    // Faz a requisição para a API do Groq
+                    HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create(GroqConfig.getApiUrl()))
+                        .header("Content-Type", "application/json")
+                        .header("Authorization", "Bearer " + GroqConfig.getApiKey())
+                        .POST(HttpRequest.BodyPublishers.ofString(payload.toString()))
+                        .build();
+
+                    response = client.send(request, HttpResponse.BodyHandlers.ofString());
+                    lastRequestTime = System.currentTimeMillis();
+
+                    // Verifica o status da resposta
+                    if (response.statusCode() == 200) {
+                        success = true;
+                    } else if (response.statusCode() == 429) { // Rate limit exceeded
+                        logger.warn("Taxa limite excedida, tentativa {}/{}. Aguardando {} ms", 
+                            retryCount + 1, MAX_RETRIES, backoffMs);
+                        Thread.sleep(backoffMs);
+                        backoffMs = (int) Math.min(backoffMs * BACKOFF_MULTIPLIER, MAX_BACKOFF_MS);
+                    } else {
+                        throw new RuntimeException("Erro na API: " + response.body());
+                    }
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    throw new RuntimeException("Operação interrompida", e);
+                }
+                retryCount++;
+            }
+
+            if (success && response != null) {
+                JSONObject jsonResponse = new JSONObject(response.body());
+                String resposta = jsonResponse
+                    .getJSONArray("choices")
+                    .getJSONObject(0)
+                    .getJSONObject("message")
+                    .getString("content");
+                
+                // Adiciona a resposta ao histórico
+                addAssistantMessage(resposta);
+                return resposta;
+            } else {
+                String erro = response != null ? 
+                    "Erro ao chamar API do Groq após " + MAX_RETRIES + " tentativas: " + response.body() :
+                    "Erro ao chamar API do Groq após " + MAX_RETRIES + " tentativas";
+                logger.error(erro);
+                return "Desculpe, estou com dificuldades técnicas no momento. Vou encaminhar para um técnico avaliar.";
+            }
+        } catch (Exception e) {
+            logger.error("Erro ao processar mensagem: " + e.getMessage(), e);
+            return "Desculpe, ocorreu um erro ao processar sua mensagem. Vou encaminhar para um técnico avaliar.";
         }
-        
-        // Se for um agradecimento, responde adequadamente
-        if (isAgradecimento(mensagem)) {
-            return "Por nada! Estou aqui para ajudar. Há mais alguma coisa que posso fazer por você?";
-        }
-        
-        // Verifica se há palavras-chave de problemas comuns
-        String categoria = chamado.getCategoriaIa();
-        List<String> solucoes = SOLUCOES_AUTOMATICAS.get(categoria);
-        
-        if (solucoes != null && !solucoes.isEmpty()) {
-            return solucoes.get(0); // Retorna a primeira solução da categoria
-        }
-        
-        // Resposta padrão
-        return "Entendi sua solicitação. Vou encaminhar para um técnico avaliar.";
     }
     
     public boolean precisaEncaminharParaTecnico(String resposta) {
-        return resposta.contains("encaminhar para um técnico");
+        return resposta.toLowerCase().contains("encaminhar para um técnico") ||
+               resposta.toLowerCase().contains("dificuldades técnicas") ||
+               resposta.toLowerCase().contains("ocorreu um erro");
     }
     
     private boolean isSaudacao(String mensagem) {

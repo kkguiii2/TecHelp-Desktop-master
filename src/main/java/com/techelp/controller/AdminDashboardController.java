@@ -305,13 +305,37 @@ public class AdminDashboardController extends BaseController {
     @FXML
     private void handleLogout() {
         try {
-            System.out.println("Realizando logout");
             authService.logout();
             carregarTela("/fxml/LoginView.fxml");
         } catch (Exception e) {
-            System.err.println("Erro ao realizar logout: " + e.getMessage());
-            e.printStackTrace();
-            mostrarErro("Erro ao realizar logout: " + e.getMessage());
+            mostrarErro("Erro ao fazer logout: " + e.getMessage());
+        }
+    }
+    
+    @FXML
+    private void handleLimparChamados() {
+        Alert confirmacao = new Alert(AlertType.CONFIRMATION);
+        confirmacao.setTitle("Confirmação");
+        confirmacao.setHeaderText("Limpar Todos os Chamados");
+        confirmacao.setContentText("Tem certeza que deseja excluir TODOS os chamados? Esta ação não pode ser desfeita.");
+        
+        if (confirmacao.showAndWait().get() == ButtonType.OK) {
+            try {
+                chamadoService.limparTodosChamados();
+                
+                // Atualiza a interface
+                carregarDados();
+                
+                // Mostra mensagem de sucesso
+                Alert sucesso = new Alert(AlertType.INFORMATION);
+                sucesso.setTitle("Sucesso");
+                sucesso.setHeaderText(null);
+                sucesso.setContentText("Todos os chamados foram excluídos com sucesso!");
+                sucesso.showAndWait();
+                
+            } catch (Exception e) {
+                mostrarErro("Erro ao limpar chamados: " + e.getMessage());
+            }
         }
     }
     

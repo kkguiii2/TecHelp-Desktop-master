@@ -28,7 +28,17 @@ public class NotificacaoService {
     }
     
     public void notificarNovoChamado(Usuario tecnico, Chamado chamado) {
-        String mensagem = String.format("Novo chamado atribuído: %s", chamado.getTitulo());
+        String mensagem = String.format("""
+            Novo chamado em andamento!
+            ID: #%d
+            Título: %s
+            Solicitante: %s
+            Prioridade: %s
+            """, 
+            chamado.getId(),
+            chamado.getTitulo(),
+            chamado.getSolicitante().getNome(),
+            chamado.getPrioridade());
         notificarUsuario(tecnico, mensagem);
     }
     

@@ -9,44 +9,62 @@
       xmlns:fx="http://javafx.com/fxml"
       fx:controller="com.techelp.controller.NovoChamadoController"
       spacing="20"
-      alignment="CENTER"
       stylesheets="@../css/styles.css"
-      styleClass="login-container">
+      styleClass="root">
 
-    <padding>
-        <Insets top="50" right="50" bottom="50" left="50"/>
-    </padding>
+    <!-- Barra de navegação -->
+    <HBox styleClass="nav-bar">
+        <padding>
+            <Insets top="10" right="20" bottom="10" left="20"/>
+        </padding>
+        
+        <Label text="Novo Chamado" styleClass="nav-title"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        
+        <Button text="Voltar" 
+                onAction="#handleVoltar"
+                styleClass="nav-button"/>
+    </HBox>
 
-    <Text text="Novo Chamado"
-          styleClass="title-text"/>
+    <!-- Container principal -->
+    <VBox spacing="20" styleClass="form-container" VBox.vgrow="ALWAYS">
+        <padding>
+            <Insets top="30" right="40" bottom="30" left="40"/>
+        </padding>
 
-    <VBox spacing="10" alignment="CENTER" styleClass="login-form">
-        <TextField fx:id="tituloField" 
-                  promptText="Título do chamado"
-                  styleClass="input-field"/>
+        <!-- Formulário -->
+        <VBox spacing="15">
+            <Label text="Título do Chamado" styleClass="form-label"/>
+            <TextField fx:id="tituloField" 
+                      promptText="Ex: Problema com acesso ao sistema"
+                      styleClass="form-field"/>
 
-        <TextArea fx:id="descricaoArea" 
-                  promptText="Descrição detalhada do problema"
-                  wrapText="true"
-                  prefRowCount="5"
-                  styleClass="input-field"/>
+            <Label text="Descrição do Problema" styleClass="form-label"/>
+            <TextArea fx:id="descricaoArea" 
+                      promptText="Descreva detalhadamente o problema que você está enfrentando..."
+                      wrapText="true"
+                      prefRowCount="10"
+                      styleClass="form-field"/>
 
-        <ComboBox fx:id="categoriaCombo"
-                  promptText="Categoria"
-                  styleClass="input-field"/>
+            <Text text="Nossa IA irá analisar seu problema e definir automaticamente a categoria e prioridade adequadas."
+                  styleClass="info-text"
+                  wrappingWidth="600"/>
 
-        <HBox spacing="10" alignment="CENTER">
-            <Button text="Criar Chamado" 
-                    onAction="#handleCriarChamado"
-                    styleClass="primary-button"/>
-
-            <Button text="Cancelar" 
-                    onAction="#handleVoltar"
-                    styleClass="secondary-button"/>
-        </HBox>
+            <HBox spacing="15" alignment="CENTER_RIGHT">
+                <Button text="Cancelar" 
+                        onAction="#handleVoltar"
+                        styleClass="secondary-button"/>
+                        
+                <Button text="Criar Chamado" 
+                        onAction="#handleCriarChamado"
+                        styleClass="primary-button"/>
+            </HBox>
+        </VBox>
     </VBox>
 
+    <!-- Mensagem de erro -->
     <Text fx:id="mensagemErro"
           styleClass="error-text"
-          visible="false"/>
+          visible="false"
+          managed="false"/>
 </VBox> 

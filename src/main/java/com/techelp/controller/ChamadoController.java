@@ -27,6 +27,7 @@ public class ChamadoController extends BaseController implements DadosAware {
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
     private Timeline atualizacaoTimer;
     private boolean esperandoResposta = false;
+    private HBox typingIndicator;
     
     private ChamadoDTO chamado;
     private Usuario usuarioLogado;
@@ -93,6 +94,9 @@ public class ChamadoController extends BaseController implements DadosAware {
                 return;
             }
             
+            // Criar o indicador de digitação
+            createTypingIndicator();
+            
             // Se não houver chamado, é um novo chamado
             if (chamado == null) {
                 tituloField.setVisible(true);
@@ -123,6 +127,48 @@ public class ChamadoController extends BaseController implements DadosAware {
             System.err.println("Erro ao inicializar controller: " + e.getMessage());
             e.printStackTrace();
             mostrarErro("Erro ao inicializar tela: " + e.getMessage());
+        }
+    }
+    
+    private void createTypingIndicator() {
+        typingIndicator = new HBox();
+        typingIndicator.getStyleClass().add("typing-indicator");
+        typingIndicator.setVisible(false);
+        
+        for (int i = 1; i <= 3; i++) {
+            Text dot = new Text("•");
+            dot.getStyleClass().addAll("typing-dot", "typing-dot-" + i);
+            typingIndicator.getChildren().add(dot);
+        }
+    }
+
+    private void showTypingIndicator() {
+        HBox container = new HBox();
+        container.setMaxWidth(Double.MAX_VALUE);
+        container.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        container.getChildren().add(typingIndicator);
+        
+        Platform.runLater(() -> {
+            interacoesBox.getChildren().add(container);
+            typingIndicator.setVisible(true);
+            scrollToBottom();
+        });
+    }
+
+    private void hideTypingIndicator() {
+        Platform.runLater(() -> {
+            interacoesBox.getChildren().remove(typingIndicator.getParent());
+            typingIndicator.setVisible(false);
+        });
+    }
+
+    private void scrollToBottom() {
+        javafx.scene.Parent parent = interacoesBox.getParent();
+        while (parent != null && !(parent instanceof ScrollPane)) {
+            parent = parent.getParent();
+        }
+        if (parent instanceof ScrollPane) {
+            ((ScrollPane) parent).setVvalue(1.0);
         }
     }
     
@@ -276,42 +322,71 @@ public class ChamadoController extends BaseController implements DadosAware {
                 carregarDados();
             }
 
-            // Salvar a mensagem do usuário e limpar o campo
+            // Desabilitar campo de mensagem e salvar mensagem atual
             final String mensagemEnviada = mensagem;
             mensagemField.clear();
             mensagemField.setDisable(true);
             esperandoResposta = true;
 
-            // Adicionar interação do usuário e atualizar imediatamente
-            chamadoService.adicionarInteracao(chamado.getId(), mensagemEnviada, usuarioLogado);
-            carregarInteracoes();
-
-            // Processar a resposta do assistente em uma thread separada
-            CompletableFuture.delayedExecutor(3, TimeUnit.SECONDS).execute(() -> {
+            // Adicionar interação do usuário e atualizar UI
+            Platform.runLater(() -> {
                 try {
-                    Platform.runLater(() -> {
-                        try {
-                            // Reativar o campo de mensagem
-                            mensagemField.setDisable(false);
-                            mensagemField.requestFocus();
-                            esperandoResposta = false;
-                        } catch (Exception e) {
-                            System.err.println("Erro ao reativar campo de mensagem: " + e.getMessage());
-                            e.printStackTrace();
-                        }
-                    });
+                    // Adiciona a interação e obtém o DTO atualizado
+                    chamadoService.adicionarInteracao(chamado.getId(), mensagemEnviada, usuarioLogado);
+                    
+                    // Atualiza o chat para mostrar a mensagem do usuário
+                    carregarInteracoes();
+                    
+                    // Se não for técnico e não houver técnico atribuído, mostra o indicador de digitação
+                    if (usuarioLogado.getTipo() != Usuario.TipoUsuario.TECNICO && chamado.getTecnico() == null) {
+                        showTypingIndicator();
+                        
+                        // Agenda a atualização do chat após o delay
+                        CompletableFuture.delayedExecutor(3, TimeUnit.SECONDS).execute(() -> {
+                            Platform.runLater(() -> {
+                                try {
+                                    // Esconde o indicador de digitação
+                                    hideTypingIndicator();
+                                    
+                                    // Recarrega as interações para mostrar a resposta do assistente
+                                    carregarInteracoes();
+                                    
+                                    // Reativa o campo de mensagem
+                                    mensagemField.setDisable(false);
+                                    mensagemField.requestFocus();
+                                    esperandoResposta = false;
+                                } catch (Exception e) {
+                                    System.err.println("Erro ao atualizar chat após resposta: " + e.getMessage());
+                                    e.printStackTrace();
+                                    hideTypingIndicator();
+                                    mensagemField.setDisable(false);
+                                    esperandoResposta = false;
+                                }
+                            });
+                        });
+                    } else {
+                        // Se for técnico ou já houver técnico atribuído, apenas reativa o campo
+                        mensagemField.setDisable(false);
+                        mensagemField.requestFocus();
+                        esperandoResposta = false;
+                    }
                 } catch (Exception e) {
-                    System.err.println("Erro ao processar resposta do assistente: " + e.getMessage());
+                    System.err.println("Erro ao processar mensagem: " + e.getMessage());
                     e.printStackTrace();
+                    hideTypingIndicator();
+                    mensagemField.setDisable(false);
+                    esperandoResposta = false;
+                    mostrarErro("Erro ao enviar mensagem: " + e.getMessage());
                 }
             });
             
         } catch (Exception e) {
             System.err.println("Erro ao enviar mensagem: " + e.getMessage());
             e.printStackTrace();
-            mostrarErro("Erro ao enviar mensagem: " + e.getMessage());
+            hideTypingIndicator();
             mensagemField.setDisable(false);
             esperandoResposta = false;
+            mostrarErro("Erro ao enviar mensagem: " + e.getMessage());
         }
     }
     

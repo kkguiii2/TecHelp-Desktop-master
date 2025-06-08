@@ -17,15 +17,16 @@ import com.techelp.config.AppConfig;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-import com.techelp.service.GeminiService;
 import com.techelp.cache.CacheManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ChamadoService {
-    
+    private static final Logger logger = LoggerFactory.getLogger(ChamadoService.class);
     private final ChamadoRepository chamadoRepository;
     private final InteracaoRepository interacaoRepository;
     private final UsuarioRepository usuarioRepository;
-    private final GeminiService geminiService;
+    private final AssistenteService assistenteService;
     private final NotificacaoService notificacaoService;
     private final CacheManager cacheManager;
     
@@ -33,7 +34,7 @@ public class ChamadoService {
         this.chamadoRepository = new ChamadoRepository();
         this.interacaoRepository = new InteracaoRepository();
         this.usuarioRepository = new UsuarioRepository();
-        this.geminiService = AppConfig.getGeminiService();
+        this.assistenteService = AppConfig.getAssistenteService();
         this.notificacaoService = new NotificacaoService();
         this.cacheManager = CacheManager.getInstance();
     }
@@ -45,7 +46,7 @@ public class ChamadoService {
         chamado.setSolicitante(solicitante);
         chamado.setStatus(Chamado.StatusChamado.ABERTO);
         chamado.setDataAbertura(LocalDateTime.now());
-        chamado.setCategoriaIa(geminiService.classificarChamado(chamado));
+        chamado.setCategoriaIa(assistenteService.classificarChamado(chamado));
         chamado.setCategoria(Chamado.CategoriaChamado.OUTROS.getDescricao());
         
         // Ajusta a prioridade automaticamente
@@ -55,7 +56,7 @@ public class ChamadoService {
         
         // Adiciona interação inicial do chatbot
         Interacao interacaoChatbot = new Interacao();
-        interacaoChatbot.setMensagem(geminiService.processarMensagem("Olá! Como posso ajudar?", chamado));
+        interacaoChatbot.setMensagem(assistenteService.processarMensagem("Olá! Como posso ajudar?", chamado));
         interacaoChatbot.setUsuario(solicitante);
         interacaoChatbot.setChamado(chamado);
         interacaoChatbot.setTipo(Interacao.TipoInteracao.RESPOSTA_CHATBOT);
@@ -98,14 +99,18 @@ public class ChamadoService {
             
         interacaoRepository.save(interacao);
 
-        // Se a interação for do solicitante, processa com o assistente virtual
-        if (usuario.getTipo() != Usuario.TipoUsuario.TECNICO) {
-            // Processa a resposta do assistente em uma thread separada com delay de 3 segundos
-            CompletableFuture.delayedExecutor(3, TimeUnit.SECONDS).execute(() -> {
+        // Se a interação for do solicitante e não houver técnico atribuído, processa com o assistente virtual
+        if (usuario.getTipo() != Usuario.TipoUsuario.TECNICO && chamado.getTecnico() == null) {
+            // Retorna imediatamente o DTO do chamado, sem a resposta do assistente
+            ChamadoDTO dto = new ChamadoDTO(chamado);
+            
+            // Processa a resposta do assistente em background após o delay
+            CompletableFuture.delayedExecutor(2, TimeUnit.SECONDS).execute(() -> {
                 try {
-                    String respostaAssistente = geminiService.processarMensagem(mensagem, chamado);
+                    // Processa a mensagem do assistente
+                    String respostaAssistente = assistenteService.processarMensagem(mensagem, chamado);
                     
-                    // Adiciona a resposta do assistente
+                    // Adiciona a resposta do assistente como uma nova interação
                     Interacao respostaBot = new Interacao();
                     respostaBot.setMensagem(respostaAssistente);
                     respostaBot.setUsuario(usuario);
@@ -115,34 +120,39 @@ public class ChamadoService {
                     interacaoRepository.save(respostaBot);
 
                     // Se o assistente não conseguir resolver, encaminha para técnicos
-                    if (geminiService.precisaEncaminharParaTecnico(respostaAssistente) && 
-                        chamado.getStatus() != Chamado.StatusChamado.EM_ANDAMENTO) {
-                        
-                        chamado.setStatus(Chamado.StatusChamado.EM_ANDAMENTO);
-                        chamadoRepository.save(chamado);
-                        
-                        // Notifica apenas técnicos disponíveis
-                        List<Usuario> tecnicos = usuarioRepository.findByTipo(Usuario.TipoUsuario.TECNICO);
-                        for (Usuario tecnico : tecnicos) {
-                            if (tecnico.getId() != usuario.getId()) { // Evita notificar o próprio usuário se for técnico
-                                notificacaoService.notificarNovoChamado(tecnico, chamado);
+                    if (assistenteService.precisaEncaminharParaTecnico(respostaAssistente)) {
+                        // Adiciona um pequeno delay antes de enviar a mensagem de encaminhamento
+                        CompletableFuture.delayedExecutor(1, TimeUnit.SECONDS).execute(() -> {
+                            try {
+                                // Atualiza o status do chamado
+                                chamado.setStatus(Chamado.StatusChamado.EM_ANDAMENTO);
+                                chamadoRepository.save(chamado);
+                                
+                                // Notifica os técnicos disponíveis
+                                List<Usuario> tecnicos = usuarioRepository.findByTipo(Usuario.TipoUsuario.TECNICO);
+                                for (Usuario tecnico : tecnicos) {
+                                    notificacaoService.notificarNovoChamado(tecnico, chamado);
+                                }
+                                
+                                // Adiciona mensagem de encaminhamento
+                                Interacao encaminhamento = new Interacao();
+                                encaminhamento.setMensagem("Chamado encaminhado para análise técnica. Em breve um técnico irá atendê-lo.");
+                                encaminhamento.setUsuario(usuario);
+                                encaminhamento.setChamado(chamado);
+                                encaminhamento.setDataHora(LocalDateTime.now());
+                                encaminhamento.setTipo(Interacao.TipoInteracao.RESPOSTA_CHATBOT);
+                                interacaoRepository.save(encaminhamento);
+                            } catch (Exception e) {
+                                logger.error("Erro ao processar encaminhamento: " + e.getMessage(), e);
                             }
-                        }
-                        
-                        // Adiciona mensagem de encaminhamento
-                        Interacao encaminhamento = new Interacao();
-                        encaminhamento.setMensagem("Chamado encaminhado para análise técnica. Em breve um técnico irá atendê-lo.");
-                        encaminhamento.setUsuario(usuario);
-                        encaminhamento.setChamado(chamado);
-                        encaminhamento.setDataHora(LocalDateTime.now());
-                        encaminhamento.setTipo(Interacao.TipoInteracao.RESPOSTA_CHATBOT);
-                        interacaoRepository.save(encaminhamento);
+                        });
                     }
                 } catch (Exception e) {
-                    System.err.println("Erro ao processar resposta do assistente: " + e.getMessage());
-                    e.printStackTrace();
+                    logger.error("Erro ao processar resposta do assistente: " + e.getMessage(), e);
                 }
             });
+            
+            return dto;
         }
         
         return new ChamadoDTO(chamado);
@@ -228,6 +238,9 @@ public class ChamadoService {
         
         chamado.setAvaliacao(avaliacao);
         chamadoRepository.save(chamado);
+        
+        // Invalida o cache para forçar uma nova leitura do banco
+        cacheManager.getChamadoCache().invalidate(chamadoId);
         
         if (chamado.getTecnico() != null) {
             notificacaoService.notificarAvaliacao(chamado.getTecnico(), chamado.getId(), avaliacao);
@@ -397,5 +410,25 @@ public class ChamadoService {
     
     public int countByPeriodo(LocalDateTime inicio, LocalDateTime fim) {
         return chamadoRepository.countByPeriodo(inicio, fim);
+    }
+    
+    public void limparTodosChamados() {
+        logger.info("Iniciando processo de limpeza de todos os chamados");
+        try {
+            // Primeiro limpa todas as interações
+            interacaoRepository.deleteAll();
+            logger.info("Todas as interações foram removidas");
+            
+            // Depois limpa todos os chamados
+            chamadoRepository.deleteAll();
+            logger.info("Todos os chamados foram removidos");
+            
+            // Limpa o cache
+            limparCache();
+            logger.info("Cache limpo com sucesso");
+        } catch (Exception e) {
+            logger.error("Erro ao limpar chamados: " + e.getMessage(), e);
+            throw new RuntimeException("Erro ao limpar chamados", e);
+        }
     }
 } 

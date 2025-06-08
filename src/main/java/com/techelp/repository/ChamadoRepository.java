@@ -655,4 +655,15 @@ public class ChamadoRepository extends BaseRepository {
             throw new RuntimeException("Erro ao excluir chamado: " + e.getMessage(), e);
         }
     }
+    
+    public void deleteAll() {
+        String sql = "DELETE FROM chamados";
+        
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.executeUpdate();
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao excluir todos os chamados: " + e.getMessage(), e);
+        }
+    }
 } 

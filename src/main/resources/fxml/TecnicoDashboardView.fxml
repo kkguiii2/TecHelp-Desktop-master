@@ -74,17 +74,20 @@
                 </HBox>
                 
                 <!-- Tabela de Chamados -->
-                <TableView fx:id="chamadosTable" VBox.vgrow="ALWAYS">
+                <TableView fx:id="chamadosTable" VBox.vgrow="ALWAYS" styleClass="chamados-table">
                     <columns>
-                        <TableColumn fx:id="idColumn" text="ID" minWidth="60"/>
-                        <TableColumn fx:id="tituloColumn" text="Título" minWidth="200"/>
-                        <TableColumn fx:id="solicitanteColumn" text="Solicitante" minWidth="150"/>
-                        <TableColumn fx:id="statusColumn" text="Status" minWidth="120"/>
-                        <TableColumn fx:id="prioridadeColumn" text="Prioridade" minWidth="120"/>
-                        <TableColumn fx:id="dataAberturaColumn" text="Data Abertura" minWidth="150"/>
-                        <TableColumn fx:id="tempoDecorridoColumn" text="Tempo Decorrido" minWidth="150"/>
-                        <TableColumn fx:id="acoesColumn" text="Ações" minWidth="300"/>
+                        <TableColumn fx:id="idColumn" text="ID" prefWidth="60" minWidth="50" styleClass="centered-column"/>
+                        <TableColumn fx:id="tituloColumn" text="Título" prefWidth="140" minWidth="120"/>
+                        <TableColumn fx:id="solicitanteColumn" text="Solicitante" prefWidth="120" minWidth="100"/>
+                        <TableColumn fx:id="statusColumn" text="Status" prefWidth="100" minWidth="90" styleClass="centered-column"/>
+                        <TableColumn fx:id="prioridadeColumn" text="Prioridade" prefWidth="100" minWidth="90" styleClass="centered-column"/>
+                        <TableColumn fx:id="dataAberturaColumn" text="Data Abertura" prefWidth="130" minWidth="120" styleClass="centered-column"/>
+                        <TableColumn fx:id="tempoDecorridoColumn" text="Tempo Decorrido" prefWidth="120" minWidth="100" styleClass="centered-column"/>
+                        <TableColumn fx:id="acoesColumn" text="Ações" prefWidth="140" minWidth="120" styleClass="centered-column"/>
                     </columns>
+                    <columnResizePolicy>
+                        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+                    </columnResizePolicy>
                 </TableView>
             </VBox>
             

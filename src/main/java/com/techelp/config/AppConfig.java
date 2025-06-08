@@ -1,14 +1,14 @@
 package com.techelp.config;
 
-import com.techelp.service.GeminiService;
+import com.techelp.service.AssistenteService;
 
 public class AppConfig {
-    private static GeminiService geminiService;
+    private static AssistenteService assistenteService;
     
-    public static GeminiService getGeminiService() {
-        if (geminiService == null) {
-            geminiService = new GeminiService();
+    public static AssistenteService getAssistenteService() {
+        if (assistenteService == null) {
+            assistenteService = new AssistenteService();
         }
-        return geminiService;
+        return assistenteService;
     }
 } 

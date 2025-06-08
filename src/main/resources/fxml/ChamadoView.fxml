@@ -118,11 +118,13 @@
                 <TextField fx:id="tituloField" 
                          promptText="Digite o título do chamado"
                          visible="false"
-                         styleClass="input-field"/>
+                         styleClass="input-field, form-field"/>
                 <TextArea fx:id="descricaoArea" 
                          wrapText="true"
                          editable="false"
-                         prefRowCount="5"/>
+                         prefRowCount="10"
+                         styleClass="form-field, description-area"
+                         VBox.vgrow="ALWAYS"/>
             </VBox>
             
             <VBox styleClass="card" fx:id="avaliacaoBox" visible="false">

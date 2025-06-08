@@ -4,17 +4,19 @@ import com.techelp.model.entity.Chamado;
 import com.techelp.model.entity.Usuario;
 import com.techelp.service.ChamadoService;
 import com.techelp.service.AuthService;
+import com.techelp.service.AssistenteService;
 import javafx.fxml.FXML;
-import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
-import javafx.collections.FXCollections;
+import javafx.scene.text.Text;
 import java.time.LocalDateTime;
+import org.json.JSONObject;
 
 public class NovoChamadoController extends BaseController {
     
     private final ChamadoService chamadoService;
     private final AuthService authService;
+    private final AssistenteService assistenteService;
     private Usuario usuarioLogado;
     
     @FXML
@@ -24,32 +26,23 @@ public class NovoChamadoController extends BaseController {
     private TextArea descricaoArea;
     
     @FXML
-    private ComboBox<Chamado.CategoriaChamado> categoriaCombo;
+    private Text mensagemErro;
     
     public NovoChamadoController() {
         this.chamadoService = new ChamadoService();
         this.authService = AuthService.getInstance();
+        this.assistenteService = new AssistenteService();
     }
     
     @FXML
     public void initialize() {
         try {
-            System.out.println("Inicializando NovoChamadoController");
-            
             usuarioLogado = authService.getUsuarioLogado();
             if (usuarioLogado == null) {
-                System.err.println("Usuário não autenticado, redirecionando para login");
                 carregarTela("/fxml/LoginView.fxml");
                 return;
             }
-            
-            // Configura o ComboBox de categoria
-            categoriaCombo.setItems(FXCollections.observableArrayList(Chamado.CategoriaChamado.values()));
-            categoriaCombo.setValue(Chamado.CategoriaChamado.OUTROS);
-            
         } catch (Exception e) {
-            System.err.println("Erro ao inicializar tela: " + e.getMessage());
-            e.printStackTrace();
             mostrarErro("Erro ao inicializar tela: " + e.getMessage());
         }
     }
@@ -57,28 +50,54 @@ public class NovoChamadoController extends BaseController {
     @FXML
     private void handleCriarChamado() {
         try {
-            System.out.println("Tentando criar chamado");
-            
             // Validação dos campos
-            if (tituloField.getText().isEmpty() || descricaoArea.getText().isEmpty() || 
-                categoriaCombo.getValue() == null) {
+            if (tituloField.getText().isEmpty() || descricaoArea.getText().isEmpty()) {
                 mostrarErro("Por favor, preencha todos os campos");
                 return;
             }
             
-            // Cria o objeto chamado
+            // Cria o objeto chamado com informações básicas
             Chamado novoChamado = new Chamado();
             novoChamado.setTitulo(tituloField.getText());
             novoChamado.setDescricao(descricaoArea.getText());
-            novoChamado.setCategoria(categoriaCombo.getValue().toString());
             novoChamado.setSolicitante(usuarioLogado);
             novoChamado.setStatus(Chamado.StatusChamado.ABERTO);
             novoChamado.setDataAbertura(LocalDateTime.now());
             
-            // Tenta criar o chamado
+            // Usa a IA para classificar o chamado
+            String prompt = String.format("""
+                Analise o chamado técnico abaixo e classifique sua categoria e prioridade.
+                
+                Título: %s
+                Descrição: %s
+                
+                Responda apenas em formato JSON com os campos:
+                - categoria: HARDWARE, SOFTWARE, REDE, ACESSO, EMAIL ou IMPRESSORA
+                - prioridade: BAIXA, MEDIA ou ALTA
+                - justificativa: breve explicação da classificação
+                
+                Considere:
+                - Prioridade ALTA: problemas que impedem o trabalho ou afetam muitos usuários
+                - Prioridade MEDIA: problemas que dificultam mas não impedem o trabalho
+                - Prioridade BAIXA: problemas que causam pequenos inconvenientes
+                """,
+                novoChamado.getTitulo(),
+                novoChamado.getDescricao()
+            );
+            
+            String resposta = assistenteService.processarMensagem(prompt, novoChamado);
+            JSONObject classificacao = new JSONObject(resposta);
+            
+            // Define categoria e prioridade com base na análise da IA
+            novoChamado.setCategoria(classificacao.getString("categoria"));
+            novoChamado.setPrioridade(Chamado.PrioridadeChamado.valueOf(classificacao.getString("prioridade")));
+            
+            // Salva o chamado
             chamadoService.criarChamado(novoChamado);
             
-            mostrarSucesso("Chamado criado com sucesso!");
+            mostrarSucesso("Chamado criado com sucesso!\n\nCategoria: " + novoChamado.getCategoria() + 
+                          "\nPrioridade: " + novoChamado.getPrioridade() +
+                          "\n\nJustificativa: " + classificacao.getString("justificativa"));
             
             // Volta para a tela anterior
             String telaRetorno = switch (usuarioLogado.getTipo()) {
@@ -90,8 +109,6 @@ public class NovoChamadoController extends BaseController {
             carregarTela(telaRetorno);
             
         } catch (Exception e) {
-            System.err.println("Erro ao criar chamado: " + e.getMessage());
-            e.printStackTrace();
             mostrarErro("Erro ao criar chamado: " + e.getMessage());
         }
     }
@@ -99,8 +116,6 @@ public class NovoChamadoController extends BaseController {
     @FXML
     private void handleVoltar() {
         try {
-            System.out.println("Voltando para tela anterior");
-            
             String telaRetorno = switch (usuarioLogado.getTipo()) {
                 case TECNICO -> "/fxml/TecnicoDashboardView.fxml";
                 case SOLICITANTE -> "/fxml/SolicitanteDashboardView.fxml";
@@ -109,8 +124,6 @@ public class NovoChamadoController extends BaseController {
             
             carregarTela(telaRetorno);
         } catch (Exception e) {
-            System.err.println("Erro ao voltar: " + e.getMessage());
-            e.printStackTrace();
             mostrarErro("Erro ao voltar: " + e.getMessage());
         }
     }
